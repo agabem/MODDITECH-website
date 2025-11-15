@@ -19,7 +19,7 @@ window.addEventListener("scroll", () => {
     }
 });
 
-// Enhanced User Management System with Error Handling
+// Enhanced User Management System
 class UserManager {
     constructor() {
         this.users = this.loadUsers();
@@ -105,18 +105,15 @@ class UserManager {
 
     register(userData) {
         try {
-            // Validate required fields
             if (!userData.email || !userData.password || !userData.firstName || !userData.role) {
                 return { success: false, message: "All fields are required" };
             }
 
-            // Validate email format
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(userData.email)) {
                 return { success: false, message: "Invalid email format" };
             }
 
-            // Check if user already exists
             const existingUser = this.users.find(u => u.email === userData.email);
             if (existingUser) {
                 return { success: false, message: "User already exists with this email" };
@@ -196,7 +193,7 @@ class UserManager {
     }
 }
 
-// Enhanced News Management System with Error Handling
+// Enhanced News Management System
 class NewsManager {
     constructor() {
         this.news = this.loadNews();
@@ -332,15 +329,6 @@ class NewsManager {
 // Initialize managers
 let userManager;
 let newsManager;
-
-// DOM Elements Cache
-const elements = {
-    loginBtn: null,
-    loginModal: null,
-    dashboardModal: null,
-    closeLogin: null,
-    closeDashboard: null
-};
 
 // Utility Functions
 const utils = {
@@ -500,9 +488,6 @@ const App = {
             userManager = new UserManager();
             newsManager = new NewsManager();
             
-            // Cache DOM elements
-            this.cacheElements();
-            
             // Setup event listeners
             this.setupEventListeners();
             
@@ -516,25 +501,34 @@ const App = {
         }
     },
 
-    cacheElements() {
-        elements.loginBtn = utils.getElement('loginBtn');
-        elements.loginModal = utils.getElement('loginModal');
-        elements.dashboardModal = utils.getElement('dashboardModal');
-        elements.closeLogin = utils.getElement('closeLogin');
-        elements.closeDashboard = utils.getElement('closeDashboard');
-    },
-
     setupEventListeners() {
         try {
-            // Modal controls
-            if (elements.loginBtn) {
-                elements.loginBtn.addEventListener('click', this.handleLoginClick.bind(this));
+            // Mobile menu
+            const hamburgerBtn = utils.getElement('hamburgerBtn');
+            const mobileMenu = utils.getElement('mobileMenu');
+            
+            if (hamburgerBtn && mobileMenu) {
+                hamburgerBtn.addEventListener('click', () => {
+                    hamburgerBtn.classList.toggle('active');
+                    mobileMenu.classList.toggle('active');
+                });
             }
-            if (elements.closeLogin) {
-                elements.closeLogin.addEventListener('click', this.closeLoginModal.bind(this));
+
+            // Login button
+            const loginBtn = utils.getElement('loginBtn');
+            if (loginBtn) {
+                loginBtn.addEventListener('click', this.handleLoginClick.bind(this));
             }
-            if (elements.closeDashboard) {
-                elements.closeDashboard.addEventListener('click', this.closeDashboardModal.bind(this));
+
+            // Modal close buttons
+            const closeLogin = utils.getElement('closeLogin');
+            const closeDashboard = utils.getElement('closeDashboard');
+            
+            if (closeLogin) {
+                closeLogin.addEventListener('click', this.closeLoginModal.bind(this));
+            }
+            if (closeDashboard) {
+                closeDashboard.addEventListener('click', this.closeDashboardModal.bind(this));
             }
 
             // Auth forms
@@ -548,6 +542,19 @@ const App = {
             
             // Navbar scroll effect
             window.addEventListener('scroll', this.handleScroll.bind(this));
+            
+            // Waitlist form
+            const waitlistForm = utils.getElement('waitlist-form');
+            if (waitlistForm) {
+                waitlistForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const email = utils.getElement('email').value;
+                    if (email) {
+                        utils.showNotification('Thank you for joining our waitlist!', 'success');
+                        waitlistForm.reset();
+                    }
+                });
+            }
             
         } catch (error) {
             console.error('Error setting up event listeners:', error);
@@ -611,12 +618,14 @@ const App = {
             // Update tabs
             const authTabs = document.querySelectorAll('.auth-tab');
             authTabs.forEach(t => t.classList.remove('active'));
-            document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+            const activeTab = document.querySelector(`[data-tab="${tab}"]`);
+            if (activeTab) activeTab.classList.add('active');
             
             // Update forms
             const authForms = document.querySelectorAll('.auth-form');
             authForms.forEach(form => form.classList.remove('active'));
-            utils.getElement(`${tab}Form`).classList.add('active');
+            const activeForm = utils.getElement(`${tab}Form`);
+            if (activeForm) activeForm.classList.add('active');
         } catch (error) {
             console.error('Error switching auth tab:', error);
         }
@@ -626,9 +635,11 @@ const App = {
         e.preventDefault();
         
         try {
-            const formData = new FormData(e.target);
-            const email = formData.get('email') || e.target.querySelector('input[type="email"]')?.value;
-            const password = formData.get('password') || e.target.querySelector('input[type="password"]')?.value;
+            const emailInput = e.target.querySelector('input[type="email"]');
+            const passwordInput = e.target.querySelector('input[type="password"]');
+            
+            const email = emailInput?.value;
+            const password = passwordInput?.value;
 
             if (!email || !password) {
                 utils.showNotification('Please fill in all fields', 'error');
@@ -654,14 +665,17 @@ const App = {
         e.preventDefault();
         
         try {
-            const formData = new FormData(e.target);
+            const firstNameInput = e.target.querySelector('input[placeholder="First Name"]');
+            const lastNameInput = e.target.querySelector('input[placeholder="Last Name"]');
+            const emailInput = e.target.querySelector('input[type="email"]');
+            const passwordInput = e.target.querySelector('input[type="password"]');
             const userRoleSelect = utils.getElement('userRole');
             
             const userData = {
-                firstName: formData.get('firstName') || e.target.querySelector('input[placeholder="First Name"]')?.value,
-                lastName: formData.get('lastName') || e.target.querySelector('input[placeholder="Last Name"]')?.value,
-                email: formData.get('email') || e.target.querySelector('input[type="email"]')?.value,
-                password: formData.get('password') || e.target.querySelector('input[type="password"]')?.value,
+                firstName: firstNameInput?.value,
+                lastName: lastNameInput?.value,
+                email: emailInput?.value,
+                password: passwordInput?.value,
                 role: userRoleSelect ? userRoleSelect.value : 'client'
             };
 
@@ -791,10 +805,13 @@ const App = {
     },
 
     handleOutsideClick(e) {
-        if (e.target === elements.loginModal) {
+        const loginModal = utils.getElement('loginModal');
+        const dashboardModal = utils.getElement('dashboardModal');
+        
+        if (e.target === loginModal) {
             this.closeLoginModal();
         }
-        if (e.target === elements.dashboardModal) {
+        if (e.target === dashboardModal) {
             this.closeDashboardModal();
         }
     },
@@ -813,16 +830,17 @@ const App = {
     updateUI() {
         try {
             const user = userManager.currentUser;
+            const loginBtn = utils.getElement('loginBtn');
             
-            if (user && elements.loginBtn) {
-                elements.loginBtn.innerHTML = `
+            if (user && loginBtn) {
+                loginBtn.innerHTML = `
                     <div class="user-avatar-small">${user.avatar}</div>
                     ${user.firstName}
                 `;
-                elements.loginBtn.classList.add('logged-in');
-            } else if (elements.loginBtn) {
-                elements.loginBtn.innerHTML = 'Login';
-                elements.loginBtn.classList.remove('logged-in');
+                loginBtn.classList.add('logged-in');
+            } else if (loginBtn) {
+                loginBtn.innerHTML = 'Login';
+                loginBtn.classList.remove('logged-in');
             }
         } catch (error) {
             console.error('Error updating UI:', error);
@@ -981,8 +999,9 @@ const App = {
     // Modal functions
     openLoginModal() {
         try {
-            if (elements.loginModal) {
-                elements.loginModal.classList.add('active');
+            const loginModal = utils.getElement('loginModal');
+            if (loginModal) {
+                loginModal.classList.add('active');
             }
         } catch (error) {
             console.error('Error opening login modal:', error);
@@ -991,8 +1010,9 @@ const App = {
 
     closeLoginModal() {
         try {
-            if (elements.loginModal) {
-                elements.loginModal.classList.remove('active');
+            const loginModal = utils.getElement('loginModal');
+            if (loginModal) {
+                loginModal.classList.remove('active');
             }
         } catch (error) {
             console.error('Error closing login modal:', error);
@@ -1001,8 +1021,9 @@ const App = {
 
     openDashboard() {
         try {
-            if (elements.dashboardModal) {
-                elements.dashboardModal.classList.add('active');
+            const dashboardModal = utils.getElement('dashboardModal');
+            if (dashboardModal) {
+                dashboardModal.classList.add('active');
                 this.loadDashboardData();
             }
         } catch (error) {
@@ -1012,8 +1033,9 @@ const App = {
 
     closeDashboardModal() {
         try {
-            if (elements.dashboardModal) {
-                elements.dashboardModal.classList.remove('active');
+            const dashboardModal = utils.getElement('dashboardModal');
+            if (dashboardModal) {
+                dashboardModal.classList.remove('active');
             }
         } catch (error) {
             console.error('Error closing dashboard:', error);
