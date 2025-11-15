@@ -391,6 +391,19 @@ function initForms() {
             }
         });
     }
+
+    // Waitlist form
+    const waitlistForm = document.getElementById('waitlist-form');
+    if (waitlistForm) {
+        waitlistForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            if (email) {
+                showMessage('Thank you for joining our waitlist!', 'success');
+                waitlistForm.reset();
+            }
+        });
+    }
 }
 
 // Dashboard functionality
@@ -533,8 +546,279 @@ function postNewsUpdate(title, content) {
     showMessage('News update posted successfully!', 'success');
 }
 
-// [Rest of the dashboard functions remain the same - reviews, comments, profile, etc.]
-// ... (keeping the same functions for reviews, comments, profile, etc. from previous code)
+// Reviews functionality
+function initReviews() {
+    const addReviewBtn = document.getElementById('addReviewBtn');
+    const cancelReview = document.getElementById('cancelReview');
+    const reviewForm = document.getElementById('reviewForm');
+    const ratingStars = document.querySelectorAll('.star');
+
+    // Rating stars
+    ratingStars.forEach(star => {
+        star.addEventListener('click', () => {
+            const rating = parseInt(star.getAttribute('data-rating'));
+            setRating(rating);
+        });
+    });
+
+    if (addReviewBtn) {
+        addReviewBtn.addEventListener('click', () => {
+            document.getElementById('addReviewForm').style.display = 'block';
+            addReviewBtn.style.display = 'none';
+        });
+    }
+
+    if (cancelReview) {
+        cancelReview.addEventListener('click', () => {
+            document.getElementById('addReviewForm').style.display = 'none';
+            addReviewBtn.style.display = 'flex';
+            reviewForm.reset();
+            setRating(0);
+        });
+    }
+
+    if (reviewForm) {
+        reviewForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const rating = parseInt(document.getElementById('ratingValue').textContent);
+            const text = document.getElementById('reviewText').value.trim();
+            
+            if (rating === 0) {
+                showMessage('Please select a rating.', 'error');
+                return;
+            }
+            
+            if (text) {
+                postReview(rating, text);
+                reviewForm.reset();
+                setRating(0);
+                document.getElementById('addReviewForm').style.display = 'none';
+                addReviewBtn.style.display = 'flex';
+            }
+        });
+    }
+
+    loadReviews();
+}
+
+function setRating(rating) {
+    const stars = document.querySelectorAll('.star');
+    const ratingValue = document.getElementById('ratingValue');
+    
+    stars.forEach((star, index) => {
+        if (index < rating) {
+            star.classList.add('active');
+        } else {
+            star.classList.remove('active');
+        }
+    });
+    
+    ratingValue.textContent = rating;
+}
+
+function loadReviews() {
+    const reviewsList = document.getElementById('reviewsList');
+    if (!reviewsList) return;
+
+    const reviews = JSON.parse(localStorage.getItem('moddiReviews') || '[]');
+    
+    if (reviews.length === 0) {
+        reviewsList.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-star"></i>
+                <h4>No Reviews Yet</h4>
+                <p>Be the first to share your experience!</p>
+            </div>
+        `;
+        return;
+    }
+
+    reviews.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+    reviewsList.innerHTML = reviews.map(review => `
+        <div class="review-item ${isCurrentUser(review.author) ? 'my-post' : ''}">
+            <div class="review-header">
+                <div class="review-author-info">
+                    <span class="review-author ${isCurrentUser(review.author) ? 'current-user' : ''}">
+                        ${escapeHtml(review.author)} ${isCurrentUser(review.author) ? '(You)' : ''}
+                    </span>
+                    ${review.authorRole !== 'admin' ? `<span class="review-role">${getRoleBadge(review.authorRole)}</span>` : ''}
+                </div>
+                <div class="review-rating">
+                    ${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}
+                </div>
+            </div>
+            <div class="review-content">${escapeHtml(review.text)}</div>
+            <div class="review-meta">
+                <span>${formatTimeAgo(review.timestamp)}</span>
+                ${isCurrentUser(review.author) ? `
+                    <button class="action-btn delete-btn" onclick="deleteReview(${review.id})">
+                        <i class="far fa-trash-alt"></i> Delete
+                    </button>
+                ` : ''}
+            </div>
+        </div>
+    `).join('');
+}
+
+function postReview(rating, text) {
+    const user = JSON.parse(localStorage.getItem('loggedInUser'));
+    if (!user) return;
+
+    const reviews = JSON.parse(localStorage.getItem('moddiReviews') || '[]');
+    const newReview = {
+        id: Date.now(),
+        rating,
+        text,
+        author: user.name,
+        authorRole: user.role,
+        authorEmail: user.email,
+        timestamp: new Date().toISOString()
+    };
+
+    reviews.unshift(newReview);
+    localStorage.setItem('moddiReviews', JSON.stringify(reviews));
+    loadReviews();
+    updateProfileStats();
+    showMessage('Review submitted successfully!', 'success');
+}
+
+// Comments functionality
+function initComments() {
+    const addCommentBtn = document.getElementById('addCommentBtn');
+    const cancelComment = document.getElementById('cancelComment');
+    const commentForm = document.getElementById('commentForm');
+
+    if (addCommentBtn) {
+        addCommentBtn.addEventListener('click', () => {
+            document.getElementById('addCommentForm').style.display = 'block';
+            addCommentBtn.style.display = 'none';
+        });
+    }
+
+    if (cancelComment) {
+        cancelComment.addEventListener('click', () => {
+            document.getElementById('addCommentForm').style.display = 'none';
+            addCommentBtn.style.display = 'flex';
+            commentForm.reset();
+        });
+    }
+
+    if (commentForm) {
+        commentForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const title = document.getElementById('commentTitle').value.trim();
+            const text = document.getElementById('commentText').value.trim();
+            
+            if (text) {
+                postComment(title, text);
+                commentForm.reset();
+                document.getElementById('addCommentForm').style.display = 'none';
+                addCommentBtn.style.display = 'flex';
+            }
+        });
+    }
+
+    loadComments();
+}
+
+function loadComments() {
+    const commentsList = document.getElementById('commentsList');
+    if (!commentsList) return;
+
+    const comments = JSON.parse(localStorage.getItem('moddiComments') || '[]');
+    
+    if (comments.length === 0) {
+        commentsList.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-comments"></i>
+                <h4>No Comments Yet</h4>
+                <p>Start the conversation!</p>
+            </div>
+        `;
+        return;
+    }
+
+    comments.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+    commentsList.innerHTML = comments.map(comment => `
+        <div class="comment-item ${isCurrentUser(comment.author) ? 'my-post' : ''}">
+            <div class="comment-header">
+                <div class="comment-author-info">
+                    <span class="comment-author ${isCurrentUser(comment.author) ? 'current-user' : ''}">
+                        ${escapeHtml(comment.author)} ${isCurrentUser(comment.author) ? '(You)' : ''}
+                    </span>
+                    ${comment.authorRole !== 'admin' ? `<span class="comment-role">${getRoleBadge(comment.authorRole)}</span>` : ''}
+                </div>
+            </div>
+            ${comment.title ? `<div class="comment-title">${escapeHtml(comment.title)}</div>` : ''}
+            <div class="comment-content">${escapeHtml(comment.text)}</div>
+            <div class="comment-meta">
+                <span>${formatTimeAgo(comment.timestamp)}</span>
+                ${isCurrentUser(comment.author) ? `
+                    <button class="action-btn delete-btn" onclick="deleteComment(${comment.id})">
+                        <i class="far fa-trash-alt"></i> Delete
+                    </button>
+                ` : ''}
+            </div>
+        </div>
+    `).join('');
+}
+
+function postComment(title, text) {
+    const user = JSON.parse(localStorage.getItem('loggedInUser'));
+    if (!user) return;
+
+    const comments = JSON.parse(localStorage.getItem('moddiComments') || '[]');
+    const newComment = {
+        id: Date.now(),
+        title,
+        text,
+        author: user.name,
+        authorRole: user.role,
+        authorEmail: user.email,
+        timestamp: new Date().toISOString()
+    };
+
+    comments.unshift(newComment);
+    localStorage.setItem('moddiComments', JSON.stringify(comments));
+    loadComments();
+    updateProfileStats();
+    showMessage('Comment posted successfully!', 'success');
+}
+
+// Profile functionality
+function loadProfile() {
+    const user = JSON.parse(localStorage.getItem('loggedInUser'));
+    if (!user) return;
+
+    // Update profile information
+    document.getElementById('profileName').textContent = user.name;
+    document.getElementById('profileEmail').textContent = user.email;
+    document.getElementById('profileRole').textContent = user.role.charAt(0).toUpperCase() + user.role.slice(1);
+    document.getElementById('profileAvatar').textContent = user.avatar;
+    document.getElementById('joinDate').textContent = user.joinDate;
+
+    // Update stats
+    updateProfileStats();
+}
+
+function updateProfileStats() {
+    const news = JSON.parse(localStorage.getItem('moddiNews') || '[]');
+    const reviews = JSON.parse(localStorage.getItem('moddiReviews') || '[]');
+    const comments = JSON.parse(localStorage.getItem('moddiComments') || '[]');
+    
+    const user = JSON.parse(localStorage.getItem('loggedInUser'));
+    if (!user) return;
+
+    const userNews = news.filter(item => item.authorEmail === user.email).length;
+    const userReviews = reviews.filter(item => item.authorEmail === user.email).length;
+    const userComments = comments.filter(item => item.authorEmail === user.email).length;
+
+    document.getElementById('newsCount').textContent = userNews;
+    document.getElementById('reviewsCount').textContent = userReviews;
+    document.getElementById('commentsCount').textContent = userComments;
+}
 
 // Dashboard and profile view functions
 function viewDashboard() {
@@ -563,6 +847,68 @@ function viewProfile() {
         
         const userMenu = document.getElementById('userMenu');
         if (userMenu) userMenu.remove();
+    }
+}
+
+// Delete functions
+function deletePost(type, id) {
+    if (confirm('Are you sure you want to delete this post?')) {
+        let items = JSON.parse(localStorage.getItem(`moddi${type.charAt(0).toUpperCase() + type.slice(1)}`) || '[]');
+        items = items.filter(item => item.id !== id);
+        localStorage.setItem(`moddi${type.charAt(0).toUpperCase() + type.slice(1)}`, JSON.stringify(items));
+        
+        if (type === 'news') loadNews();
+        updateProfileStats();
+        showMessage('Post deleted successfully!', 'success');
+    }
+}
+
+function deleteReview(id) {
+    if (confirm('Are you sure you want to delete this review?')) {
+        let reviews = JSON.parse(localStorage.getItem('moddiReviews') || '[]');
+        reviews = reviews.filter(review => review.id !== id);
+        localStorage.setItem('moddiReviews', JSON.stringify(reviews));
+        loadReviews();
+        updateProfileStats();
+        showMessage('Review deleted successfully!', 'success');
+    }
+}
+
+function deleteComment(id) {
+    if (confirm('Are you sure you want to delete this comment?')) {
+        let comments = JSON.parse(localStorage.getItem('moddiComments') || '[]');
+        comments = comments.filter(comment => comment.id !== id);
+        localStorage.setItem('moddiComments', JSON.stringify(comments));
+        loadComments();
+        updateProfileStats();
+        showMessage('Comment deleted successfully!', 'success');
+    }
+}
+
+// Like function
+function likePost(type, id) {
+    const user = JSON.parse(localStorage.getItem('loggedInUser'));
+    if (!user) return;
+
+    let items = JSON.parse(localStorage.getItem(`moddi${type.charAt(0).toUpperCase() + type.slice(1)}`) || '[]');
+    const itemIndex = items.findIndex(item => item.id === id);
+    
+    if (itemIndex !== -1) {
+        const item = items[itemIndex];
+        if (!item.likedBy) item.likedBy = [];
+        
+        const userIndex = item.likedBy.indexOf(user.email);
+        if (userIndex === -1) {
+            item.likedBy.push(user.email);
+            item.likes = (item.likes || 0) + 1;
+        } else {
+            item.likedBy.splice(userIndex, 1);
+            item.likes = (item.likes || 0) - 1;
+        }
+        
+        localStorage.setItem(`moddi${type.charAt(0).toUpperCase() + type.slice(1)}`, JSON.stringify(items));
+        
+        if (type === 'news') loadNews();
     }
 }
 
