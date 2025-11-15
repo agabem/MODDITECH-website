@@ -278,20 +278,19 @@ body {
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.7);
-  display: flex;
+  display: none;
   justify-content: center;
   align-items: center;
   z-index: 2000;
   opacity: 0;
-  visibility: hidden;
   transition: var(--transition);
   -webkit-backdrop-filter: blur(5px);
   backdrop-filter: blur(5px);
 }
 
 .modal.active {
+  display: flex;
   opacity: 1;
-  visibility: visible;
 }
 
 .modal-content {
@@ -589,11 +588,6 @@ body {
   padding: 1.5rem;
   margin-bottom: 2rem;
   border: 1px solid var(--border);
-  display: none;
-}
-
-.create-post.active {
-  display: block;
 }
 
 .create-post textarea {
@@ -711,6 +705,10 @@ body {
 .action-btn:hover {
   background: var(--bg-primary);
   color: var(--text-primary);
+}
+
+.action-btn.liked {
+  color: var(--danger);
 }
 
 .action-btn.delete:hover {
@@ -857,6 +855,36 @@ body {
   gap: 1rem;
 }
 
+/* Empty States */
+.empty-state {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: var(--text-muted);
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  border: 2px dashed var(--border);
+}
+
+.empty-state i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.empty-state h4 {
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.error-state {
+  text-align: center;
+  padding: 2rem;
+  color: var(--danger);
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  border: 1px solid var(--danger);
+}
+
 /* ========== FOOTER ========== */
 footer {
   background: var(--bg-primary);
@@ -903,6 +931,27 @@ footer .container {
   color: var(--text-muted);
   font-size: 0.9rem;
   margin: 0;
+}
+
+/* CTA Button */
+.cta-btn {
+  background: transparent;
+  border: 1px solid var(--primary);
+  color: var(--primary);
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius);
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  text-decoration: none;
+  display: inline-block;
+}
+
+.cta-btn:hover {
+  background: var(--primary);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
 }
 
 /* ========== RESPONSIVE STYLES ========== */
