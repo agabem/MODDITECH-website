@@ -143,7 +143,50 @@
       </div>
     </div>
   </div>
+<!-- Login Modal -->
+<div id="loginModal" class="modal">
+    <div class="modal-content">
+        <span id="closeLogin" class="close">&times;</span>
+        <h2>Welcome Back</h2>
+        
+        <!-- Auth Tabs -->
+        <div class="auth-tabs">
+            <button class="auth-tab active" data-tab="login">Login</button>
+            <button class="auth-tab" data-tab="signup">Sign Up</button>
+        </div>
+        
+        <!-- Login Form -->
+        <form id="loginForm" class="auth-form active">
+            <input type="email" placeholder="Email" required>
+            <input type="password" placeholder="Password" required>
+            <button type="submit">Login</button>
+            <p>Don't have an account? <a href="#" class="switch-to-signup">Sign up</a></p>
+        </form>
+        
+        <!-- Signup Form -->
+        <form id="signupForm" class="auth-form">
+            <input type="text" placeholder="First Name" required>
+            <input type="text" placeholder="Last Name">
+            <input type="email" placeholder="Email" required>
+            <input type="password" placeholder="Password" required>
+            <select id="userRole">
+                <option value="client">Client</option>
+                <option value="designer">Designer</option>
+                <option value="partner">Partner</option>
+            </select>
+            <button type="submit">Create Account</button>
+            <p>Already have an account? <a href="#" class="switch-to-login">Login</a></p>
+        </form>
+    </div>
+</div>
 
+<!-- Dashboard Modal -->
+<div id="dashboardModal" class="modal">
+    <div class="modal-content dashboard-content">
+        <span id="closeDashboard" class="close">&times;</span>
+        <!-- Dashboard content will be loaded here -->
+    </div>
+</div>
   <!-- DASHBOARD MODAL -->
   <div id="dashboardModal" class="modal">
     <div class="modal-content dashboard-content">
