@@ -12,7 +12,6 @@
   <header class="navbar">
     <div class="logo">Moddi<span>Tech</span><span class="dot"></span></div>
 
-    <!-- Accessible hamburger button -->
     <button class="hamburger" id="hamburgerBtn" aria-label="Open navigation menu">
       <span></span>
       <span></span>
@@ -37,7 +36,6 @@
           Modern UI/UX. Websites. Branding. Social Content. Digital Identity. We create digital experiences that captivate and convert.
         </p>
 
-        <!-- Join Waitlist -->
         <form id="waitlist-form">
           <div class="waitlist-form">
             <input type="email" id="email" placeholder="Enter your email" required />
@@ -107,16 +105,40 @@
   <div id="loginModal" class="modal">
     <div class="modal-content">
       <button class="close-modal" id="closeLogin">✕</button>
-      <h2>Welcome Back</h2>
-      <p>Please log in to continue</p>
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-tab="login">Login</button>
+        <button class="auth-tab" data-tab="signup">Sign Up</button>
+      </div>
 
-      <form id="login-form">
-        <input type="email" placeholder="Email" required />
-        <input type="password" placeholder="Password" required />
-        <button type="submit" class="cta-btn">Login</button>
-      </form>
+      <div id="loginForm" class="auth-form active">
+        <h2>Welcome Back</h2>
+        <form id="login-form">
+          <input type="email" placeholder="Email Address" required />
+          <input type="password" placeholder="Password" required />
+          <button type="submit" class="cta-btn full-width">Login</button>
+        </form>
+        <p class="auth-switch">Don't have an account? <a href="#" class="switch-to-signup">Sign up</a></p>
+      </div>
 
-      <p class="modal-note">Forgot your password? <a href="#">Reset</a></p>
+      <div id="signupForm" class="auth-form">
+        <h2>Join Our Community</h2>
+        <form id="signup-form">
+          <div class="form-row">
+            <input type="text" placeholder="First Name" required />
+            <input type="text" placeholder="Last Name" required />
+          </div>
+          <input type="email" placeholder="Email Address" required />
+          <input type="password" placeholder="Password" required />
+          <select id="userRole" required>
+            <option value="">Select Your Role</option>
+            <option value="client">Client</option>
+            <option value="designer">Designer</option>
+            <option value="partner">Partner</option>
+          </select>
+          <button type="submit" class="cta-btn full-width">Create Account</button>
+        </form>
+        <p class="auth-switch">Already have an account? <a href="#" class="switch-to-login">Login</a></p>
+      </div>
     </div>
   </div>
 
@@ -126,134 +148,86 @@
       <button class="close-modal" id="closeDashboard">✕</button>
       
       <div class="dashboard-header">
-        <h2>Moddi Tech Design Dashboard</h2>
-        <div class="user-welcome" id="userWelcome">
-          <span id="userGreeting">Welcome back!</span>
-          <span class="user-role-badge" id="userRoleBadge">Admin</span>
+        <div class="user-info">
+          <div class="user-avatar" id="userAvatar">👤</div>
+          <div>
+            <h2 id="userName">Welcome</h2>
+            <div class="user-role-badge" id="userRoleBadge">Guest</div>
+          </div>
+        </div>
+        <div class="dashboard-stats">
+          <div class="stat">
+            <span class="stat-number" id="newsCount">0</span>
+            <span class="stat-label">News</span>
+          </div>
+          <div class="stat">
+            <span class="stat-number" id="reviewsCount">0</span>
+            <span class="stat-label">Reviews</span>
+          </div>
+          <div class="stat">
+            <span class="stat-number" id="commentsCount">0</span>
+            <span class="stat-label">Comments</span>
+          </div>
         </div>
       </div>
 
       <div class="dashboard-tabs">
-        <button class="tab-btn active" data-tab="news">News & Updates</button>
-        <button class="tab-btn" data-tab="reviews">Reviews</button>
-        <button class="tab-btn" data-tab="comments">Comments</button>
-        <button class="tab-btn" data-tab="profile">My Profile</button>
+        <button class="tab-btn active" data-tab="news">📰 News Feed</button>
+        <button class="tab-btn" data-tab="community">👥 Community</button>
+        <button class="tab-btn" data-tab="profile">👤 My Profile</button>
       </div>
 
       <div class="tab-content active" id="newsTab">
         <div class="tab-header">
-          <h3>Official News & Updates</h3>
-          <button class="btn-primary" id="refreshNews">
-            <i class="fas fa-sync-alt"></i> Refresh
+          <h3>Latest Updates</h3>
+          <button class="btn-primary" id="createNewsBtn">
+            <i class="fas fa-plus"></i> New Post
           </button>
+        </div>
+        
+        <div class="create-post" id="createNewsForm">
+          <textarea id="newsContent" placeholder="Share an update with the community..." rows="3"></textarea>
+          <div class="post-actions">
+            <button class="btn-primary" id="postNewsBtn">Post Update</button>
+            <button class="btn-secondary" id="cancelNewsBtn">Cancel</button>
+          </div>
         </div>
         
         <div class="news-feed" id="newsFeed">
           <!-- News items will be loaded here -->
         </div>
-        
-        <div class="post-update" id="adminPostSection">
-          <h4>Post New Update</h4>
-          <form id="newsForm">
-            <input type="text" id="newsTitle" placeholder="Update Title" required>
-            <textarea id="newsContent" placeholder="What's new at Moddi Tech Design?" rows="4" required></textarea>
-            <div class="form-actions">
-              <button type="submit" class="btn-primary">Post Update</button>
-            </div>
-          </form>
-        </div>
       </div>
 
-      <div class="tab-content" id="reviewsTab">
+      <div class="tab-content" id="communityTab">
         <div class="tab-header">
-          <h3>Client Reviews</h3>
-          <button class="btn-primary" id="addReviewBtn">
-            <i class="fas fa-plus"></i> Add Review
-          </button>
+          <h3>Community Members</h3>
+          <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Search users..." id="userSearch">
+          </div>
         </div>
         
-        <div class="reviews-container">
-          <div class="reviews-list" id="reviewsList">
-            <!-- Reviews will be loaded here -->
-          </div>
-          
-          <div class="add-review-form" id="addReviewForm">
-            <h4>Write a Review</h4>
-            <form id="reviewForm">
-              <div class="rating-input">
-                <label>Rating:</label>
-                <div class="stars" id="ratingStars">
-                  <span class="star" data-rating="1">★</span>
-                  <span class="star" data-rating="2">★</span>
-                  <span class="star" data-rating="3">★</span>
-                  <span class="star" data-rating="4">★</span>
-                  <span class="star" data-rating="5">★</span>
-                </div>
-                <span class="rating-value" id="ratingValue">0</span>/5
-              </div>
-              <textarea id="reviewText" placeholder="Share your experience with Moddi Tech Design..." rows="4" required></textarea>
-              <div class="form-actions">
-                <button type="submit" class="btn-primary">Submit Review</button>
-                <button type="button" class="btn-secondary" id="cancelReview">Cancel</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-
-      <div class="tab-content" id="commentsTab">
-        <div class="tab-header">
-          <h3>Community Comments</h3>
-          <button class="btn-primary" id="addCommentBtn">
-            <i class="fas fa-comment"></i> Add Comment
-          </button>
-        </div>
-        
-        <div class="comments-container">
-          <div class="comments-list" id="commentsList">
-            <!-- Comments will be loaded here -->
-          </div>
-          
-          <div class="add-comment-form" id="addCommentForm">
-            <h4>Add a Comment</h4>
-            <form id="commentForm">
-              <input type="text" id="commentTitle" placeholder="Comment Title (optional)">
-              <textarea id="commentText" placeholder="Share your thoughts..." rows="3" required></textarea>
-              <div class="form-actions">
-                <button type="submit" class="btn-primary">Post Comment</button>
-                <button type="button" class="btn-secondary" id="cancelComment">Cancel</button>
-              </div>
-            </form>
-          </div>
+        <div class="users-grid" id="usersList">
+          <!-- Users will be loaded here -->
         </div>
       </div>
 
       <div class="tab-content" id="profileTab">
         <div class="profile-section">
-          <h3>My Profile</h3>
-          <div class="profile-info">
-            <div class="profile-avatar" id="profileAvatar">👑</div>
-            <div class="profile-details">
-              <h4 id="profileName">Moddi Admin</h4>
-              <p id="profileEmail">modditechdesigns@gmail.com</p>
-              <p class="profile-role" id="profileRole">Administrator</p>
-              <p class="profile-join-date">Member since: <span id="joinDate">2024-01-01</span></p>
+          <div class="profile-header">
+            <div class="profile-avatar-large" id="profileAvatar">👤</div>
+            <div class="profile-info">
+              <h3 id="profileName">User Name</h3>
+              <p id="profileEmail">user@example.com</p>
+              <div class="profile-role" id="profileRole">Role</div>
+              <p class="join-date">Member since <span id="joinDate">2024</span></p>
             </div>
           </div>
           
-          <div class="profile-stats">
-            <div class="stat-card">
-              <span class="stat-number" id="reviewsCount">0</span>
-              <span class="stat-label">Reviews</span>
-            </div>
-            <div class="stat-card">
-              <span class="stat-number" id="commentsCount">0</span>
-              <span class="stat-label">Comments</span>
-            </div>
-            <div class="stat-card">
-              <span class="stat-number" id="newsCount">0</span>
-              <span class="stat-label">News Posts</span>
-            </div>
+          <div class="profile-actions">
+            <button class="btn-secondary" onclick="logout()">
+              <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
           </div>
         </div>
       </div>
@@ -272,9 +246,6 @@
         </a>
         <a href="https://instagram.com/modditech" class="social-icon" aria-label="Instagram">
           <i class="fab fa-instagram"></i>
-        </a>
-        <a href="https://dribbble.com/modditech" class="social-icon" aria-label="Dribbble">
-          <i class="fab fa-dribbble"></i>
         </a>
       </div>
       <p class="copyright">© 2025 Moddi Tech Design. All rights reserved.</p>
