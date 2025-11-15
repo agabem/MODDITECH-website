@@ -9,6 +9,15 @@ if (hamburgerBtn && mobileMenu) {
     });
 }
 
+// Close mobile menu when clicking on links
+const mobileLinks = document.querySelectorAll('.nav-links a');
+mobileLinks.forEach(link => {
+    link.addEventListener('click', () => {
+        hamburgerBtn.classList.remove("active");
+        mobileMenu.classList.remove("active");
+    });
+});
+
 // Navbar scroll effect
 window.addEventListener("scroll", () => {
     const navbar = document.querySelector(".navbar");
@@ -19,7 +28,7 @@ window.addEventListener("scroll", () => {
     }
 });
 
-// Enhanced User Management System
+// Enhanced User Management System with YOUR Admin
 class UserManager {
     constructor() {
         this.users = this.loadUsers();
@@ -31,14 +40,16 @@ class UserManager {
             const defaultUsers = [
                 {
                     id: 1,
-                    email: "admin@modditech.com",
-                    password: "admin123",
+                    email: "modditechdesigns@gmail.com", 
+                    password: "moddi2024", 
                     firstName: "Moddi",
                     lastName: "Admin",
+                    name: "Moddi Admin",
                     role: "admin",
                     avatar: "👑",
                     joinDate: "2024-01-01",
-                    bio: "Lead Administrator"
+                    verified: true,
+                    bio: "Lead Administrator & Founder"
                 },
                 {
                     id: 2,
@@ -357,59 +368,6 @@ const utils = {
                 </div>
             `;
 
-            // Add styles if not already present
-            if (!document.getElementById('notification-styles')) {
-                const style = document.createElement('style');
-                style.id = 'notification-styles';
-                style.textContent = `
-                    .notification {
-                        position: fixed;
-                        top: 100px;
-                        right: 20px;
-                        background: var(--bg-secondary);
-                        border: 1px solid var(--border);
-                        border-radius: var(--radius);
-                        padding: 1rem 1.5rem;
-                        color: var(--text-primary);
-                        box-shadow: var(--shadow-lg);
-                        z-index: 3000;
-                        transform: translateX(100%);
-                        transition: var(--transition);
-                        max-width: 300px;
-                    }
-                    .notification.success {
-                        border-left: 4px solid var(--accent);
-                    }
-                    .notification.error {
-                        border-left: 4px solid var(--danger);
-                    }
-                    .notification.info {
-                        border-left: 4px solid var(--primary);
-                    }
-                    .notification.show {
-                        transform: translateX(0);
-                    }
-                    .notification-content {
-                        display: flex;
-                        align-items: center;
-                        gap: 0.5rem;
-                    }
-                    .notification i {
-                        font-size: 1.2rem;
-                    }
-                    .notification.success i {
-                        color: var(--accent);
-                    }
-                    .notification.error i {
-                        color: var(--danger);
-                    }
-                    .notification.info i {
-                        color: var(--primary);
-                    }
-                `;
-                document.head.appendChild(style);
-            }
-
             document.body.appendChild(notification);
 
             // Animate in
@@ -495,6 +453,10 @@ const App = {
             this.updateUI();
             
             console.log('App initialized successfully');
+            console.log('Available admin login:');
+            console.log('Email: modditechdesigns@gmail.com');
+            console.log('Password: moddi2024');
+            
         } catch (error) {
             console.error('Error initializing app:', error);
             utils.showNotification('Failed to initialize application', 'error');
@@ -513,6 +475,17 @@ const App = {
                     mobileMenu.classList.toggle('active');
                 });
             }
+
+            // Close mobile menu when clicking on links
+            const mobileLinks = document.querySelectorAll('.nav-links a');
+            mobileLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if (hamburgerBtn && mobileMenu) {
+                        hamburgerBtn.classList.remove("active");
+                        mobileMenu.classList.remove("active");
+                    }
+                });
+            });
 
             // Login button
             const loginBtn = utils.getElement('loginBtn');
