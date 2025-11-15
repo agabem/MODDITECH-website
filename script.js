@@ -550,12 +550,6 @@ const utils = {
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
-    },
-
-    // Mobile viewport height helper
-    setMobileViewport() {
-        const vh = window.innerHeight * 0.01;
-        document.documentElement.style.setProperty('--vh', `${vh}px`);
     }
 };
 
@@ -572,9 +566,6 @@ const App = {
             userManager = new UserManager();
             newsManager = new NewsManager();
             
-            // Setup mobile viewport
-            this.setupMobileViewport();
-            
             // Setup event listeners
             this.setupEventListeners();
             
@@ -589,18 +580,12 @@ const App = {
         }
     },
 
-    setupMobileViewport() {
-        utils.setMobileViewport();
-        window.addEventListener('resize', utils.setMobileViewport);
-        window.addEventListener('orientationchange', utils.setMobileViewport);
-    },
-
     setupEventListeners() {
         try {
             // Navbar scroll effect
             window.addEventListener('scroll', this.handleScroll.bind(this));
             
-            // Login button
+            // Login button - FIXED: Use correct ID
             const loginBtn = utils.getElement('loginBtn');
             if (loginBtn) {
                 loginBtn.addEventListener('click', this.handleLoginClick.bind(this));
@@ -715,7 +700,7 @@ const App = {
             const activeTab = document.querySelector(`[data-tab="${tab}"]`);
             if (activeTab) activeTab.classList.add('active');
             
-            // Update forms
+            // Update forms - FIXED: Use correct ID format
             const authForms = document.querySelectorAll('.auth-form');
             authForms.forEach(form => form.classList.remove('active'));
             const activeForm = utils.getElement(`${tab}Form`);
@@ -729,9 +714,9 @@ const App = {
         e.preventDefault();
         
         try {
-            const formData = new FormData(e.target);
-            const email = formData.get('email')?.toString() || '';
-            const password = formData.get('password')?.toString() || '';
+            // FIXED: Get form data correctly
+            const email = e.target.querySelector('input[type="email"]').value;
+            const password = e.target.querySelector('input[type="password"]').value;
 
             if (!email || !password) {
                 utils.showNotification('Please fill in all fields', 'error');
@@ -757,13 +742,20 @@ const App = {
         e.preventDefault();
         
         try {
-            const formData = new FormData(e.target);
+            // FIXED: Get form data correctly
+            const firstName = e.target.querySelector('input[placeholder="First Name"]').value;
+            const lastName = e.target.querySelector('input[placeholder="Last Name"]').value;
+            const email = e.target.querySelector('input[type="email"]').value;
+            const password = e.target.querySelector('input[type="password"]').value;
+            const roleSelect = utils.getElement('userRole');
+            const role = roleSelect ? roleSelect.value : 'client';
+
             const userData = {
-                firstName: formData.get('firstName')?.toString() || '',
-                lastName: formData.get('lastName')?.toString() || '',
-                email: formData.get('email')?.toString() || '',
-                password: formData.get('password')?.toString() || '',
-                role: formData.get('role')?.toString() || 'client'
+                firstName: firstName,
+                lastName: lastName,
+                email: email,
+                password: password,
+                role: role
             };
 
             const result = userManager.register(userData);
@@ -797,15 +789,6 @@ const App = {
                 createNewsBtn.addEventListener('click', () => {
                     if (createNewsForm) createNewsForm.style.display = 'block';
                     if (createNewsBtn) createNewsBtn.style.display = 'none';
-                    // Focus on textarea for better mobile UX
-                    const newsContent = utils.getElement('newsContent');
-                    if (newsContent) {
-                        newsContent.focus();
-                        // Scroll to textarea on mobile
-                        if (window.innerWidth <= 768) {
-                            newsContent.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        }
-                    }
                 });
             }
 
@@ -815,10 +798,6 @@ const App = {
                     if (createNewsBtn) createNewsBtn.style.display = 'flex';
                     const newsContent = utils.getElement('newsContent');
                     if (newsContent) newsContent.value = '';
-                    // Close keyboard on mobile
-                    if (window.innerWidth <= 768) {
-                        newsContent.blur();
-                    }
                 });
             }
 
@@ -835,54 +814,13 @@ const App = {
                 userSearch.addEventListener('input', utils.debounce(this.handleUserSearch.bind(this), 300));
             }
 
-            // Logout button
-            const logoutBtn = document.querySelector('#logoutBtn');
+            // Logout button - FIXED: Use correct selector
+            const logoutBtn = document.querySelector('#profileTab .btn-secondary');
             if (logoutBtn) {
                 logoutBtn.addEventListener('click', this.logout.bind(this));
             }
-
-            // Mobile swipe support for tabs
-            this.setupMobileSwipe();
         } catch (error) {
             console.error('Error setting up dashboard:', error);
-        }
-    },
-
-    setupMobileSwipe() {
-        if (window.innerWidth <= 768) {
-            const dashboardContent = utils.getElement('dashboardModal');
-            if (dashboardContent) {
-                let startX = 0;
-                let endX = 0;
-
-                dashboardContent.addEventListener('touchstart', (e) => {
-                    startX = e.changedTouches[0].screenX;
-                });
-
-                dashboardContent.addEventListener('touchend', (e) => {
-                    endX = e.changedTouches[0].screenX;
-                    this.handleSwipe(startX, endX);
-                });
-            }
-        }
-    },
-
-    handleSwipe(startX, endX) {
-        const swipeThreshold = 50;
-        const diff = startX - endX;
-
-        if (Math.abs(diff) > swipeThreshold) {
-            const tabBtns = document.querySelectorAll('.tab-btn');
-            const activeTab = document.querySelector('.tab-btn.active');
-            const activeIndex = Array.from(tabBtns).indexOf(activeTab);
-
-            if (diff > 0 && activeIndex < tabBtns.length - 1) {
-                // Swipe left - next tab
-                tabBtns[activeIndex + 1].click();
-            } else if (diff < 0 && activeIndex > 0) {
-                // Swipe right - previous tab
-                tabBtns[activeIndex - 1].click();
-            }
         }
     },
 
@@ -907,11 +845,6 @@ const App = {
                 if (createNewsForm) createNewsForm.style.display = 'none';
                 if (createNewsBtn) createNewsBtn.style.display = 'flex';
                 newsContent.value = '';
-                
-                // Close keyboard on mobile after posting
-                if (window.innerWidth <= 768) {
-                    newsContent.blur();
-                }
             } else {
                 utils.showNotification(result.message, 'error');
             }
@@ -950,11 +883,6 @@ const App = {
                         case 'profile':
                             this.loadProfileData();
                             break;
-                    }
-
-                    // Close keyboard on mobile when switching tabs
-                    if (window.innerWidth <= 768) {
-                        document.activeElement?.blur();
                     }
                 });
             });
@@ -1200,7 +1128,7 @@ const App = {
             const loginModal = utils.getElement('loginModal');
             if (loginModal) {
                 loginModal.classList.add('active');
-                document.body.classList.add('modal-open');
+                document.body.style.overflow = 'hidden';
             }
         } catch (error) {
             console.error('Error opening login modal:', error);
@@ -1212,7 +1140,7 @@ const App = {
             const loginModal = utils.getElement('loginModal');
             if (loginModal) {
                 loginModal.classList.remove('active');
-                document.body.classList.remove('modal-open');
+                document.body.style.overflow = '';
                 
                 // Reset forms
                 const loginForm = utils.getElement('login-form');
@@ -1233,14 +1161,8 @@ const App = {
             const dashboardModal = utils.getElement('dashboardModal');
             if (dashboardModal) {
                 dashboardModal.classList.add('active');
-                document.body.classList.add('modal-open');
+                document.body.style.overflow = 'hidden';
                 this.loadDashboardData();
-                
-                // Focus management for accessibility
-                setTimeout(() => {
-                    const firstTab = dashboardModal.querySelector('.tab-btn.active');
-                    if (firstTab) firstTab.focus();
-                }, 100);
             }
         } catch (error) {
             console.error('Error opening dashboard:', error);
@@ -1252,16 +1174,7 @@ const App = {
             const dashboardModal = utils.getElement('dashboardModal');
             if (dashboardModal) {
                 dashboardModal.classList.remove('active');
-                document.body.classList.remove('modal-open');
-                
-                // Reset create post form
-                const createNewsForm = utils.getElement('createNewsForm');
-                const createNewsBtn = utils.getElement('createNewsBtn');
-                const newsContent = utils.getElement('newsContent');
-                
-                if (createNewsForm) createNewsForm.style.display = 'none';
-                if (createNewsBtn) createNewsBtn.style.display = 'flex';
-                if (newsContent) newsContent.value = '';
+                document.body.style.overflow = '';
             }
         } catch (error) {
             console.error('Error closing dashboard modal:', error);
