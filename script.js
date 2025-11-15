@@ -1,9 +1,8 @@
-// Enhanced Mobile Menu Toggle with proper error handling
+// Enhanced Mobile Menu with Mobile Dashboard Support
 class MobileMenu {
     constructor() {
         this.hamburgerBtn = document.getElementById("hamburgerBtn");
         this.mobileMenu = document.getElementById("mobileMenu");
-        this.navbar = document.querySelector(".navbar");
         this.isOpen = false;
         this.init();
     }
@@ -24,8 +23,8 @@ class MobileMenu {
             this.toggleMenu();
         });
 
-        // Close menu when clicking on links
-        const navLinks = document.querySelectorAll('.nav-links a, .mobile-nav-links a');
+        // Close menu when clicking on links and login button
+        const navLinks = this.mobileMenu.querySelectorAll('a, .login-btn');
         navLinks.forEach(link => {
             link.addEventListener('click', () => {
                 this.closeMenu();
@@ -46,7 +45,9 @@ class MobileMenu {
 
         // Close on outside click
         document.addEventListener('click', (e) => {
-            if (this.isOpen && !this.mobileMenu.contains(e.target) && !this.hamburgerBtn.contains(e.target)) {
+            if (this.isOpen && 
+                !this.mobileMenu.contains(e.target) && 
+                !this.hamburgerBtn.contains(e.target)) {
                 this.closeMenu();
             }
         });
@@ -62,6 +63,7 @@ class MobileMenu {
 
     openMenu() {
         this.hamburgerBtn.classList.add("active");
+        this.hamburgerBtn.setAttribute('aria-expanded', 'true');
         this.mobileMenu.classList.add("active");
         document.body.classList.add("menu-open");
         this.isOpen = true;
@@ -70,6 +72,7 @@ class MobileMenu {
 
     closeMenu() {
         this.hamburgerBtn.classList.remove("active");
+        this.hamburgerBtn.setAttribute('aria-expanded', 'false');
         this.mobileMenu.classList.remove("active");
         document.body.classList.remove("menu-open");
         this.isOpen = false;
@@ -80,18 +83,7 @@ class MobileMenu {
         this.removeBackdrop();
         
         const backdrop = document.createElement('div');
-        backdrop.className = 'mobile-menu-backdrop';
-        backdrop.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 998;
-            backdrop-filter: blur(2px);
-        `;
-        
+        backdrop.className = 'mobile-menu-backdrop active';
         backdrop.addEventListener('click', () => this.closeMenu());
         document.body.appendChild(backdrop);
     }
@@ -124,7 +116,6 @@ class UserManager {
                     password: "moddi2024", 
                     firstName: "Moddi",
                     lastName: "Admin",
-                    name: "Moddi Admin",
                     role: "admin",
                     avatar: "👑",
                     joinDate: "2024-01-01",
@@ -200,7 +191,6 @@ class UserManager {
 
     register(userData) {
         try {
-            // Validation
             if (!userData.email?.trim() || !userData.password?.trim() || 
                 !userData.firstName?.trim() || !userData.role) {
                 return { success: false, message: "All fields are required" };
@@ -307,31 +297,6 @@ class UserManager {
             return null;
         }
     }
-
-    updateUser(userId, updates) {
-        try {
-            const userIndex = this.users.findIndex(user => user.id === parseInt(userId));
-            if (userIndex === -1) {
-                return { success: false, message: "User not found" };
-            }
-
-            this.users[userIndex] = { ...this.users[userIndex], ...updates };
-            const saved = this.saveUsers();
-            
-            // Update current user if it's the same user
-            if (this.currentUser && this.currentUser.id === parseInt(userId)) {
-                this.saveCurrentUser(this.users[userIndex]);
-            }
-
-            return saved ? 
-                { success: true, user: this.users[userIndex] } : 
-                { success: false, message: "Failed to save user updates" };
-                
-        } catch (error) {
-            console.error('Error updating user:', error);
-            return { success: false, message: "Update failed due to system error" };
-        }
-    }
 }
 
 // Enhanced News Management System
@@ -421,7 +386,6 @@ class NewsManager {
             const post = this.news[postIndex];
             const currentUser = userManager.currentUser;
             
-            // Check permissions
             if (post.userId !== parseInt(userId) && currentUser?.role !== 'admin') {
                 return { success: false, message: "Unauthorized to delete this post" };
             }
@@ -483,16 +447,6 @@ class NewsManager {
             return [];
         }
     }
-
-    getPostsByUser(userId) {
-        try {
-            return this.news.filter(post => post.userId === parseInt(userId))
-                           .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-        } catch (error) {
-            console.error('Error getting user posts:', error);
-            return [];
-        }
-    }
 }
 
 // Utility Functions
@@ -515,24 +469,8 @@ const utils = {
 
             const notification = document.createElement('div');
             notification.className = `notification ${type}`;
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: ${type === 'success' ? '#10B981' : type === 'error' ? '#EF4444' : '#3B82F6'};
-                color: white;
-                padding: 12px 20px;
-                border-radius: 8px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                z-index: 10000;
-                transform: translateX(400px);
-                opacity: 0;
-                transition: all 0.3s ease;
-                max-width: 400px;
-            `;
-
             notification.innerHTML = `
-                <div style="display: flex; align-items: center; gap: 8px;">
+                <div class="notification-content">
                     <i class="fas fa-${this.getNotificationIcon(type)}"></i>
                     <span>${message}</span>
                 </div>
@@ -541,15 +479,11 @@ const utils = {
             document.body.appendChild(notification);
 
             // Animate in
-            setTimeout(() => {
-                notification.style.transform = 'translateX(0)';
-                notification.style.opacity = '1';
-            }, 100);
+            setTimeout(() => notification.classList.add('show'), 100);
 
             // Remove after 4 seconds
             setTimeout(() => {
-                notification.style.transform = 'translateX(400px)';
-                notification.style.opacity = '0';
+                notification.classList.remove('show');
                 setTimeout(() => {
                     if (notification.parentNode) {
                         notification.remove();
@@ -616,10 +550,16 @@ const utils = {
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
+    },
+
+    // Mobile viewport height helper
+    setMobileViewport() {
+        const vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
     }
 };
 
-// Main Application Controller
+// Main Application Controller with Enhanced Mobile Dashboard
 const App = {
     init() {
         try {
@@ -631,6 +571,9 @@ const App = {
             // Initialize managers
             userManager = new UserManager();
             newsManager = new NewsManager();
+            
+            // Setup mobile viewport
+            this.setupMobileViewport();
             
             // Setup event listeners
             this.setupEventListeners();
@@ -644,6 +587,12 @@ const App = {
             console.error('Error initializing app:', error);
             utils.showNotification('Failed to initialize application', 'error');
         }
+    },
+
+    setupMobileViewport() {
+        utils.setMobileViewport();
+        window.addEventListener('resize', utils.setMobileViewport);
+        window.addEventListener('orientationchange', utils.setMobileViewport);
     },
 
     setupEventListeners() {
@@ -702,6 +651,11 @@ const App = {
     },
 
     handleLoginClick() {
+        // Close mobile menu if open
+        if (this.mobileMenu && this.mobileMenu.isOpen) {
+            this.mobileMenu.closeMenu();
+        }
+
         if (userManager.currentUser) {
             this.openDashboard();
         } else {
@@ -764,7 +718,7 @@ const App = {
             // Update forms
             const authForms = document.querySelectorAll('.auth-form');
             authForms.forEach(form => form.classList.remove('active'));
-            const activeForm = utils.getElement(`${tab}-form`);
+            const activeForm = utils.getElement(`${tab}Form`);
             if (activeForm) activeForm.classList.add('active');
         } catch (error) {
             console.error('Error switching auth tab:', error);
@@ -843,6 +797,15 @@ const App = {
                 createNewsBtn.addEventListener('click', () => {
                     if (createNewsForm) createNewsForm.style.display = 'block';
                     if (createNewsBtn) createNewsBtn.style.display = 'none';
+                    // Focus on textarea for better mobile UX
+                    const newsContent = utils.getElement('newsContent');
+                    if (newsContent) {
+                        newsContent.focus();
+                        // Scroll to textarea on mobile
+                        if (window.innerWidth <= 768) {
+                            newsContent.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }
                 });
             }
 
@@ -852,6 +815,10 @@ const App = {
                     if (createNewsBtn) createNewsBtn.style.display = 'flex';
                     const newsContent = utils.getElement('newsContent');
                     if (newsContent) newsContent.value = '';
+                    // Close keyboard on mobile
+                    if (window.innerWidth <= 768) {
+                        newsContent.blur();
+                    }
                 });
             }
 
@@ -869,12 +836,53 @@ const App = {
             }
 
             // Logout button
-            const logoutBtn = utils.getElement('logoutBtn');
+            const logoutBtn = document.querySelector('#logoutBtn');
             if (logoutBtn) {
                 logoutBtn.addEventListener('click', this.logout.bind(this));
             }
+
+            // Mobile swipe support for tabs
+            this.setupMobileSwipe();
         } catch (error) {
             console.error('Error setting up dashboard:', error);
+        }
+    },
+
+    setupMobileSwipe() {
+        if (window.innerWidth <= 768) {
+            const dashboardContent = utils.getElement('dashboardModal');
+            if (dashboardContent) {
+                let startX = 0;
+                let endX = 0;
+
+                dashboardContent.addEventListener('touchstart', (e) => {
+                    startX = e.changedTouches[0].screenX;
+                });
+
+                dashboardContent.addEventListener('touchend', (e) => {
+                    endX = e.changedTouches[0].screenX;
+                    this.handleSwipe(startX, endX);
+                });
+            }
+        }
+    },
+
+    handleSwipe(startX, endX) {
+        const swipeThreshold = 50;
+        const diff = startX - endX;
+
+        if (Math.abs(diff) > swipeThreshold) {
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const activeTab = document.querySelector('.tab-btn.active');
+            const activeIndex = Array.from(tabBtns).indexOf(activeTab);
+
+            if (diff > 0 && activeIndex < tabBtns.length - 1) {
+                // Swipe left - next tab
+                tabBtns[activeIndex + 1].click();
+            } else if (diff < 0 && activeIndex > 0) {
+                // Swipe right - previous tab
+                tabBtns[activeIndex - 1].click();
+            }
         }
     },
 
@@ -899,6 +907,11 @@ const App = {
                 if (createNewsForm) createNewsForm.style.display = 'none';
                 if (createNewsBtn) createNewsBtn.style.display = 'flex';
                 newsContent.value = '';
+                
+                // Close keyboard on mobile after posting
+                if (window.innerWidth <= 768) {
+                    newsContent.blur();
+                }
             } else {
                 utils.showNotification(result.message, 'error');
             }
@@ -937,6 +950,11 @@ const App = {
                         case 'profile':
                             this.loadProfileData();
                             break;
+                    }
+
+                    // Close keyboard on mobile when switching tabs
+                    if (window.innerWidth <= 768) {
+                        document.activeElement?.blur();
                     }
                 });
             });
@@ -1031,8 +1049,20 @@ const App = {
 
     updateUserStats(user) {
         const newsCount = utils.getElement('newsCount');
+        const communityCount = utils.getElement('communityCount');
+        const likesCount = utils.getElement('likesCount');
+
         if (newsCount) {
             newsCount.textContent = newsManager.getUserNewsCount(user.id);
+        }
+        if (communityCount) {
+            communityCount.textContent = userManager.getAllUsers().length;
+        }
+        if (likesCount) {
+            // Calculate total likes for user's posts
+            const userPosts = newsManager.news.filter(post => post.userId === user.id);
+            const totalLikes = userPosts.reduce((sum, post) => sum + post.likes, 0);
+            likesCount.textContent = totalLikes;
         }
     },
 
@@ -1046,7 +1076,6 @@ const App = {
             const profileEmail = utils.getElement('profileEmail');
             const profileRole = utils.getElement('profileRole');
             const joinDate = utils.getElement('joinDate');
-            const userBio = utils.getElement('userBio');
 
             if (profileAvatar) profileAvatar.textContent = user.avatar;
             if (profileName) profileName.textContent = `${user.firstName} ${user.lastName}`;
@@ -1056,7 +1085,6 @@ const App = {
                 profileRole.style.background = utils.getRoleColor(user.role);
             }
             if (joinDate) joinDate.textContent = user.joinDate;
-            if (userBio) userBio.textContent = user.bio || 'No bio yet';
 
         } catch (error) {
             console.error('Error loading profile data:', error);
@@ -1074,7 +1102,7 @@ const App = {
                 newsFeed.innerHTML = `
                     <div class="empty-state">
                         <i class="fas fa-newspaper"></i>
-                        <h4>No News Yet</h4>
+                        <h4>No Posts Yet</h4>
                         <p>Be the first to share an update!</p>
                     </div>
                 `;
@@ -1104,7 +1132,7 @@ const App = {
                         <div class="news-content">${utils.escapeHtml(post.content)}</div>
                         <div class="news-actions">
                             <button class="action-btn ${isLiked ? 'liked' : ''}" onclick="App.toggleLike(${post.id})">
-                                <i class="fas fa-heart"></i> ${post.likes}
+                                <i class="fas fa-heart"></i> <span class="like-count">${post.likes}</span>
                             </button>
                             ${canDelete ? `
                                 <button class="action-btn delete" onclick="App.deletePost(${post.id})">
@@ -1136,7 +1164,7 @@ const App = {
                     user.firstName.toLowerCase().includes(searchTerm) ||
                     user.lastName.toLowerCase().includes(searchTerm) ||
                     user.role.toLowerCase().includes(searchTerm) ||
-                    user.bio.toLowerCase().includes(searchTerm)
+                    (user.bio && user.bio.toLowerCase().includes(searchTerm))
                 );
             }
 
@@ -1172,7 +1200,7 @@ const App = {
             const loginModal = utils.getElement('loginModal');
             if (loginModal) {
                 loginModal.classList.add('active');
-                document.body.style.overflow = 'hidden';
+                document.body.classList.add('modal-open');
             }
         } catch (error) {
             console.error('Error opening login modal:', error);
@@ -1184,7 +1212,7 @@ const App = {
             const loginModal = utils.getElement('loginModal');
             if (loginModal) {
                 loginModal.classList.remove('active');
-                document.body.style.overflow = '';
+                document.body.classList.remove('modal-open');
                 
                 // Reset forms
                 const loginForm = utils.getElement('login-form');
@@ -1205,8 +1233,14 @@ const App = {
             const dashboardModal = utils.getElement('dashboardModal');
             if (dashboardModal) {
                 dashboardModal.classList.add('active');
-                document.body.style.overflow = 'hidden';
+                document.body.classList.add('modal-open');
                 this.loadDashboardData();
+                
+                // Focus management for accessibility
+                setTimeout(() => {
+                    const firstTab = dashboardModal.querySelector('.tab-btn.active');
+                    if (firstTab) firstTab.focus();
+                }, 100);
             }
         } catch (error) {
             console.error('Error opening dashboard:', error);
@@ -1218,10 +1252,19 @@ const App = {
             const dashboardModal = utils.getElement('dashboardModal');
             if (dashboardModal) {
                 dashboardModal.classList.remove('active');
-                document.body.style.overflow = '';
+                document.body.classList.remove('modal-open');
+                
+                // Reset create post form
+                const createNewsForm = utils.getElement('createNewsForm');
+                const createNewsBtn = utils.getElement('createNewsBtn');
+                const newsContent = utils.getElement('newsContent');
+                
+                if (createNewsForm) createNewsForm.style.display = 'none';
+                if (createNewsBtn) createNewsBtn.style.display = 'flex';
+                if (newsContent) newsContent.value = '';
             }
         } catch (error) {
-            console.error('Error closing dashboard:', error);
+            console.error('Error closing dashboard modal:', error);
         }
     },
 
@@ -1236,6 +1279,7 @@ const App = {
             const result = newsManager.likePost(postId, userManager.currentUser.id);
             if (result.success) {
                 this.loadNewsFeed();
+                this.updateUserStats(userManager.currentUser);
             } else {
                 utils.showNotification(result.message, 'error');
             }
@@ -1272,7 +1316,9 @@ const App = {
                 utils.showNotification('Logged out successfully', 'success');
                 this.closeDashboardModal();
                 this.updateUI();
-                this.mobileMenu.closeMenu();
+                if (this.mobileMenu) {
+                    this.mobileMenu.closeMenu();
+                }
             } else {
                 utils.showNotification(result.message, 'error');
             }
@@ -1294,8 +1340,3 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Make App methods globally available for onclick handlers
 window.App = App;
-
-// Export for testing
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { App, UserManager, NewsManager, MobileMenu };
-}
