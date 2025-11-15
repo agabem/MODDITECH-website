@@ -1079,3 +1079,223 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Make App methods globally available for onclick handlers
 window.App = App;
+// Enhanced Mobile Menu Functionality
+class MobileMenu {
+    constructor() {
+        this.hamburgerBtn = document.getElementById("hamburgerBtn");
+        this.mobileMenu = document.getElementById("mobileMenu");
+        this.navbar = document.querySelector(".navbar");
+        this.init();
+    }
+
+    init() {
+        if (this.hamburgerBtn && this.mobileMenu) {
+            this.setupEventListeners();
+        }
+    }
+
+    setupEventListeners() {
+        // Hamburger button click
+        this.hamburgerBtn.addEventListener("click", () => {
+            this.toggleMenu();
+        });
+
+        // Close menu when clicking on links
+        const navLinks = this.mobileMenu.querySelectorAll('a');
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                this.closeMenu();
+            });
+        });
+
+        // Close menu when clicking on login button
+        const loginBtn = this.mobileMenu.querySelector('.login-btn');
+        if (loginBtn) {
+            loginBtn.addEventListener('click', () => {
+                this.closeMenu();
+            });
+        }
+
+        // Close menu on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.closeMenu();
+            }
+        });
+
+        // Close menu on resize (if menu is open and screen becomes larger)
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768 && this.mobileMenu.classList.contains('active')) {
+                this.closeMenu();
+            }
+        });
+    }
+
+    toggleMenu() {
+        this.hamburgerBtn.classList.toggle("active");
+        this.mobileMenu.classList.toggle("active");
+        document.body.classList.toggle("menu-open");
+        
+        // Add backdrop when menu is open
+        if (this.mobileMenu.classList.contains('active')) {
+            this.createBackdrop();
+        } else {
+            this.removeBackdrop();
+        }
+    }
+
+    openMenu() {
+        this.hamburgerBtn.classList.add("active");
+        this.mobileMenu.classList.add("active");
+        document.body.classList.add("menu-open");
+        this.createBackdrop();
+    }
+
+    closeMenu() {
+        this.hamburgerBtn.classList.remove("active");
+        this.mobileMenu.classList.remove("active");
+        document.body.classList.remove("menu-open");
+        this.removeBackdrop();
+    }
+
+    createBackdrop() {
+        // Remove existing backdrop if any
+        this.removeBackdrop();
+        
+        const backdrop = document.createElement('div');
+        backdrop.className = 'mobile-menu-backdrop';
+        backdrop.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 998;
+            backdrop-filter: blur(2px);
+        `;
+        
+        backdrop.addEventListener('click', () => {
+            this.closeMenu();
+        });
+        
+        document.body.appendChild(backdrop);
+    }
+
+    removeBackdrop() {
+        const backdrop = document.querySelector('.mobile-menu-backdrop');
+        if (backdrop) {
+            backdrop.remove();
+        }
+    }
+}
+
+// Initialize Mobile Menu
+let mobileMenu;
+
+// Update the Main Application Controller
+const App = {
+    init() {
+        try {
+            console.log('Initializing Moddi Tech Design App...');
+            
+            // Initialize mobile menu first
+            mobileMenu = new MobileMenu();
+            
+            // Initialize managers
+            userManager = new UserManager();
+            newsManager = new NewsManager();
+            
+            // Setup event listeners
+            this.setupEventListeners();
+            
+            // Update UI based on current state
+            this.updateUI();
+            
+            console.log('App initialized successfully');
+            console.log('Available admin login:');
+            console.log('Email: modditechdesigns@gmail.com');
+            console.log('Password: moddi2024');
+            
+        } catch (error) {
+            console.error('Error initializing app:', error);
+            utils.showNotification('Failed to initialize application', 'error');
+        }
+    },
+
+    setupEventListeners() {
+        try {
+            // Navbar scroll effect
+            window.addEventListener('scroll', this.handleScroll.bind(this));
+            
+            // Login button
+            const loginBtn = utils.getElement('loginBtn');
+            if (loginBtn) {
+                loginBtn.addEventListener('click', this.handleLoginClick.bind(this));
+            }
+
+            // Modal close buttons
+            const closeLogin = utils.getElement('closeLogin');
+            const closeDashboard = utils.getElement('closeDashboard');
+            
+            if (closeLogin) {
+                closeLogin.addEventListener('click', this.closeLoginModal.bind(this));
+            }
+            if (closeDashboard) {
+                closeDashboard.addEventListener('click', this.closeDashboardModal.bind(this));
+            }
+
+            // Auth forms
+            this.setupAuthForms();
+            
+            // Dashboard functionality
+            this.setupDashboard();
+            
+            // Close modals on outside click
+            document.addEventListener('click', this.handleOutsideClick.bind(this));
+            
+            // Waitlist form
+            const waitlistForm = utils.getElement('waitlist-form');
+            if (waitlistForm) {
+                waitlistForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const email = utils.getElement('email').value;
+                    if (email) {
+                        utils.showNotification('Thank you for joining our waitlist!', 'success');
+                        waitlistForm.reset();
+                    }
+                });
+            }
+            
+        } catch (error) {
+            console.error('Error setting up event listeners:', error);
+        }
+    },
+
+    // ... rest of your App methods remain the same ...
+}
+
+// Test function to check mobile menu
+function testMobileMenu() {
+    console.log('Testing mobile menu...');
+    console.log('Hamburger button:', document.getElementById('hamburgerBtn'));
+    console.log('Mobile menu:', document.getElementById('mobileMenu'));
+    console.log('Window width:', window.innerWidth);
+    
+    // Force show mobile menu for testing
+    if (window.innerWidth <= 768) {
+        const hamburger = document.getElementById('hamburgerBtn');
+        const menu = document.getElementById('mobileMenu');
+        if (hamburger && menu) {
+            console.log('Mobile elements found - adding test styles');
+            hamburger.style.display = 'flex';
+            menu.style.display = 'flex';
+        }
+    }
+}
+
+// Call test on load
+document.addEventListener('DOMContentLoaded', function() {
+    App.init();
+    testMobileMenu();
+});
