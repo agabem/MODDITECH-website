@@ -17,48 +17,30 @@ class MobileMenu {
     }
 
     setupEventListeners() {
-        // Hamburger button click
         this.hamburgerBtn.addEventListener("click", (e) => {
             e.stopPropagation();
             this.toggleMenu();
         });
 
-        // Close menu when clicking on links and login button
         const navLinks = this.mobileMenu.querySelectorAll('a, .login-btn');
         navLinks.forEach(link => {
-            link.addEventListener('click', () => {
-                this.closeMenu();
-            });
+            link.addEventListener('click', () => this.closeMenu());
         });
 
-        // Close on escape key
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && this.isOpen) {
-                this.closeMenu();
-            }
+            if (e.key === 'Escape' && this.isOpen) this.closeMenu();
         });
 
-        // Close on resize
-        window.addEventListener('resize', () => {
-            this.handleResize();
-        });
-
-        // Close on outside click
+        window.addEventListener('resize', () => this.handleResize());
         document.addEventListener('click', (e) => {
-            if (this.isOpen && 
-                !this.mobileMenu.contains(e.target) && 
-                !this.hamburgerBtn.contains(e.target)) {
+            if (this.isOpen && !this.mobileMenu.contains(e.target) && !this.hamburgerBtn.contains(e.target)) {
                 this.closeMenu();
             }
         });
     }
 
     toggleMenu() {
-        if (this.isOpen) {
-            this.closeMenu();
-        } else {
-            this.openMenu();
-        }
+        this.isOpen ? this.closeMenu() : this.openMenu();
     }
 
     openMenu() {
@@ -81,7 +63,6 @@ class MobileMenu {
 
     createBackdrop() {
         this.removeBackdrop();
-        
         const backdrop = document.createElement('div');
         backdrop.className = 'mobile-menu-backdrop active';
         backdrop.addEventListener('click', () => this.closeMenu());
@@ -112,8 +93,8 @@ class UserManager {
             const defaultUsers = [
                 {
                     id: 1,
-                    email: "modditechdesigns@gmail.com", 
-                    password: "moddi2024", 
+                    email: "admin@modditech.com", 
+                    password: "admin123", 
                     firstName: "Moddi",
                     lastName: "Admin",
                     role: "admin",
@@ -191,6 +172,7 @@ class UserManager {
 
     register(userData) {
         try {
+            // Validation
             if (!userData.email?.trim() || !userData.password?.trim() || 
                 !userData.firstName?.trim() || !userData.role) {
                 return { success: false, message: "All fields are required" };
@@ -210,6 +192,7 @@ class UserManager {
                 return { success: false, message: "User already exists with this email" };
             }
 
+            // Create new user
             const newUser = {
                 id: Date.now(),
                 email: userData.email.trim(),
@@ -553,7 +536,7 @@ const utils = {
     }
 };
 
-// Main Application Controller with Enhanced Mobile Dashboard
+// Main Application Controller
 const App = {
     init() {
         try {
@@ -563,8 +546,8 @@ const App = {
             this.mobileMenu = new MobileMenu();
             
             // Initialize managers
-            userManager = new UserManager();
-            newsManager = new NewsManager();
+            window.userManager = new UserManager();
+            window.newsManager = new NewsManager();
             
             // Setup event listeners
             this.setupEventListeners();
@@ -585,7 +568,7 @@ const App = {
             // Navbar scroll effect
             window.addEventListener('scroll', this.handleScroll.bind(this));
             
-            // Login button - FIXED: Use correct ID
+            // Login button
             const loginBtn = utils.getElement('loginBtn');
             if (loginBtn) {
                 loginBtn.addEventListener('click', this.handleLoginClick.bind(this));
@@ -627,7 +610,7 @@ const App = {
         try {
             const emailInput = utils.getElement('email');
             if (emailInput && emailInput.value) {
-                utils.showNotification('Thank you for joining our waitlist! We\\'ll be in touch soon.', 'success');
+                utils.showNotification('Thank you for joining our waitlist! We\'ll be in touch soon.', 'success');
                 e.target.reset();
             }
         } catch (error) {
@@ -677,9 +660,9 @@ const App = {
                 });
             }
 
-            // Form submissions
-            const loginForm = utils.getElement('login-form');
-            const signupForm = utils.getElement('signup-form');
+            // Form submissions - FIXED: Use correct form IDs
+            const loginForm = utils.getElement('loginForm');
+            const signupForm = utils.getElement('signupForm');
 
             if (loginForm) {
                 loginForm.addEventListener('submit', this.handleLogin.bind(this));
@@ -700,7 +683,7 @@ const App = {
             const activeTab = document.querySelector(`[data-tab="${tab}"]`);
             if (activeTab) activeTab.classList.add('active');
             
-            // Update forms - FIXED: Use correct ID format
+            // Update forms
             const authForms = document.querySelectorAll('.auth-form');
             authForms.forEach(form => form.classList.remove('active'));
             const activeForm = utils.getElement(`${tab}Form`);
@@ -714,9 +697,9 @@ const App = {
         e.preventDefault();
         
         try {
-            // FIXED: Get form data correctly
-            const email = e.target.querySelector('input[type="email"]').value;
-            const password = e.target.querySelector('input[type="password"]').value;
+            const formData = new FormData(e.target);
+            const email = formData.get('login-email');
+            const password = formData.get('login-password');
 
             if (!email || !password) {
                 utils.showNotification('Please fill in all fields', 'error');
@@ -728,7 +711,7 @@ const App = {
                 utils.showNotification(`Welcome back, ${result.user.firstName}!`, 'success');
                 this.closeLoginModal();
                 this.updateUI();
-                this.loadDashboardData();
+                this.openDashboard();
             } else {
                 utils.showNotification(result.message, 'error');
             }
@@ -742,13 +725,12 @@ const App = {
         e.preventDefault();
         
         try {
-            // FIXED: Get form data correctly
-            const firstName = e.target.querySelector('input[placeholder="First Name"]').value;
-            const lastName = e.target.querySelector('input[placeholder="Last Name"]').value;
-            const email = e.target.querySelector('input[type="email"]').value;
-            const password = e.target.querySelector('input[type="password"]').value;
-            const roleSelect = utils.getElement('userRole');
-            const role = roleSelect ? roleSelect.value : 'client';
+            const formData = new FormData(e.target);
+            const firstName = formData.get('first-name');
+            const lastName = formData.get('last-name');
+            const email = formData.get('signup-email');
+            const password = formData.get('signup-password');
+            const role = formData.get('user-role');
 
             const userData = {
                 firstName: firstName,
@@ -766,7 +748,7 @@ const App = {
                 if (loginResult.success) {
                     this.closeLoginModal();
                     this.updateUI();
-                    this.loadDashboardData();
+                    this.openDashboard();
                 }
             } else {
                 utils.showNotification(result.message, 'error');
@@ -814,8 +796,8 @@ const App = {
                 userSearch.addEventListener('input', utils.debounce(this.handleUserSearch.bind(this), 300));
             }
 
-            // Logout button - FIXED: Use correct selector
-            const logoutBtn = document.querySelector('#profileTab .btn-secondary');
+            // Logout button
+            const logoutBtn = utils.getElement('logoutBtn');
             if (logoutBtn) {
                 logoutBtn.addEventListener('click', this.logout.bind(this));
             }
@@ -1128,6 +1110,7 @@ const App = {
             const loginModal = utils.getElement('loginModal');
             if (loginModal) {
                 loginModal.classList.add('active');
+                loginModal.setAttribute('aria-hidden', 'false');
                 document.body.style.overflow = 'hidden';
             }
         } catch (error) {
@@ -1140,11 +1123,12 @@ const App = {
             const loginModal = utils.getElement('loginModal');
             if (loginModal) {
                 loginModal.classList.remove('active');
+                loginModal.setAttribute('aria-hidden', 'true');
                 document.body.style.overflow = '';
                 
                 // Reset forms
-                const loginForm = utils.getElement('login-form');
-                const signupForm = utils.getElement('signup-form');
+                const loginForm = utils.getElement('loginForm');
+                const signupForm = utils.getElement('signupForm');
                 if (loginForm) loginForm.reset();
                 if (signupForm) signupForm.reset();
                 
@@ -1161,6 +1145,7 @@ const App = {
             const dashboardModal = utils.getElement('dashboardModal');
             if (dashboardModal) {
                 dashboardModal.classList.add('active');
+                dashboardModal.setAttribute('aria-hidden', 'false');
                 document.body.style.overflow = 'hidden';
                 this.loadDashboardData();
             }
@@ -1174,6 +1159,7 @@ const App = {
             const dashboardModal = utils.getElement('dashboardModal');
             if (dashboardModal) {
                 dashboardModal.classList.remove('active');
+                dashboardModal.setAttribute('aria-hidden', 'true');
                 document.body.style.overflow = '';
             }
         } catch (error) {
@@ -1241,10 +1227,6 @@ const App = {
         }
     }
 };
-
-// Initialize managers
-let userManager;
-let newsManager;
 
 // Initialize the application when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
