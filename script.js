@@ -1,34 +1,114 @@
-// Mobile Menu Toggle
-const hamburgerBtn = document.getElementById("hamburgerBtn");
-const mobileMenu = document.getElementById("mobileMenu");
+// Enhanced Mobile Menu Toggle with proper error handling
+class MobileMenu {
+    constructor() {
+        this.hamburgerBtn = document.getElementById("hamburgerBtn");
+        this.mobileMenu = document.getElementById("mobileMenu");
+        this.navbar = document.querySelector(".navbar");
+        this.isOpen = false;
+        this.init();
+    }
 
-if (hamburgerBtn && mobileMenu) {
-    hamburgerBtn.addEventListener("click", () => {
-        hamburgerBtn.classList.toggle("active");
-        mobileMenu.classList.toggle("active");
-    });
+    init() {
+        if (!this.hamburgerBtn || !this.mobileMenu) {
+            console.warn('Mobile menu elements not found');
+            return;
+        }
+        this.setupEventListeners();
+        this.handleResize();
+    }
+
+    setupEventListeners() {
+        // Hamburger button click
+        this.hamburgerBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            this.toggleMenu();
+        });
+
+        // Close menu when clicking on links
+        const navLinks = document.querySelectorAll('.nav-links a, .mobile-nav-links a');
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                this.closeMenu();
+            });
+        });
+
+        // Close on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.isOpen) {
+                this.closeMenu();
+            }
+        });
+
+        // Close on resize
+        window.addEventListener('resize', () => {
+            this.handleResize();
+        });
+
+        // Close on outside click
+        document.addEventListener('click', (e) => {
+            if (this.isOpen && !this.mobileMenu.contains(e.target) && !this.hamburgerBtn.contains(e.target)) {
+                this.closeMenu();
+            }
+        });
+    }
+
+    toggleMenu() {
+        if (this.isOpen) {
+            this.closeMenu();
+        } else {
+            this.openMenu();
+        }
+    }
+
+    openMenu() {
+        this.hamburgerBtn.classList.add("active");
+        this.mobileMenu.classList.add("active");
+        document.body.classList.add("menu-open");
+        this.isOpen = true;
+        this.createBackdrop();
+    }
+
+    closeMenu() {
+        this.hamburgerBtn.classList.remove("active");
+        this.mobileMenu.classList.remove("active");
+        document.body.classList.remove("menu-open");
+        this.isOpen = false;
+        this.removeBackdrop();
+    }
+
+    createBackdrop() {
+        this.removeBackdrop();
+        
+        const backdrop = document.createElement('div');
+        backdrop.className = 'mobile-menu-backdrop';
+        backdrop.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 998;
+            backdrop-filter: blur(2px);
+        `;
+        
+        backdrop.addEventListener('click', () => this.closeMenu());
+        document.body.appendChild(backdrop);
+    }
+
+    removeBackdrop() {
+        const backdrop = document.querySelector('.mobile-menu-backdrop');
+        if (backdrop) backdrop.remove();
+    }
+
+    handleResize() {
+        if (window.innerWidth > 768 && this.isOpen) {
+            this.closeMenu();
+        }
+    }
 }
 
-// Close mobile menu when clicking on links
-const mobileLinks = document.querySelectorAll('.nav-links a');
-mobileLinks.forEach(link => {
-    link.addEventListener('click', () => {
-        hamburgerBtn.classList.remove("active");
-        mobileMenu.classList.remove("active");
-    });
-});
-
-// Navbar scroll effect
-window.addEventListener("scroll", () => {
-    const navbar = document.querySelector(".navbar");
-    if (window.scrollY > 50) {
-        navbar.classList.add("scrolled");
-    } else {
-        navbar.classList.remove("scrolled");
-    }
-});
-
-// Enhanced User Management System with YOUR Admin
+// Enhanced User Management System
 class UserManager {
     constructor() {
         this.users = this.loadUsers();
@@ -86,8 +166,10 @@ class UserManager {
     saveUsers() {
         try {
             localStorage.setItem('moddiUsers', JSON.stringify(this.users));
+            return true;
         } catch (error) {
             console.error('Error saving users:', error);
+            return false;
         }
     }
 
@@ -109,69 +191,92 @@ class UserManager {
             } else {
                 localStorage.removeItem('currentUser');
             }
+            return true;
         } catch (error) {
             console.error('Error saving current user:', error);
+            return false;
         }
     }
 
     register(userData) {
         try {
-            if (!userData.email || !userData.password || !userData.firstName || !userData.role) {
+            // Validation
+            if (!userData.email?.trim() || !userData.password?.trim() || 
+                !userData.firstName?.trim() || !userData.role) {
                 return { success: false, message: "All fields are required" };
             }
 
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(userData.email)) {
+            if (!emailRegex.test(userData.email.trim())) {
                 return { success: false, message: "Invalid email format" };
             }
 
-            const existingUser = this.users.find(u => u.email === userData.email);
+            if (userData.password.length < 6) {
+                return { success: false, message: "Password must be at least 6 characters" };
+            }
+
+            const existingUser = this.users.find(u => u.email === userData.email.trim());
             if (existingUser) {
                 return { success: false, message: "User already exists with this email" };
             }
 
             const newUser = {
                 id: Date.now(),
-                ...userData,
+                email: userData.email.trim(),
+                password: userData.password,
+                firstName: userData.firstName.trim(),
+                lastName: userData.lastName?.trim() || '',
+                role: userData.role,
                 joinDate: new Date().toISOString().split('T')[0],
                 avatar: this.getAvatarForRole(userData.role),
-                bio: "New community member"
+                bio: "New community member",
+                verified: false
             };
 
             this.users.push(newUser);
-            this.saveUsers();
-            return { success: true, user: newUser };
+            const saved = this.saveUsers();
+            
+            return saved ? 
+                { success: true, user: newUser } : 
+                { success: false, message: "Failed to save user data" };
+                
         } catch (error) {
             console.error('Error registering user:', error);
-            return { success: false, message: "Registration failed" };
+            return { success: false, message: "Registration failed due to system error" };
         }
     }
 
     login(email, password) {
         try {
-            if (!email || !password) {
+            if (!email?.trim() || !password?.trim()) {
                 return { success: false, message: "Email and password are required" };
             }
 
-            const user = this.users.find(u => u.email === email && u.password === password);
+            const user = this.users.find(u => 
+                u.email === email.trim() && u.password === password
+            );
+            
             if (user) {
-                this.saveCurrentUser(user);
-                return { success: true, user };
+                const saved = this.saveCurrentUser(user);
+                return saved ? 
+                    { success: true, user } : 
+                    { success: false, message: "Login failed to save session" };
             }
+            
             return { success: false, message: "Invalid email or password" };
         } catch (error) {
             console.error('Error during login:', error);
-            return { success: false, message: "Login failed" };
+            return { success: false, message: "Login failed due to system error" };
         }
     }
 
     logout() {
         try {
-            this.saveCurrentUser(null);
-            return { success: true };
+            const saved = this.saveCurrentUser(null);
+            return { success: saved, message: saved ? null : "Logout failed" };
         } catch (error) {
             console.error('Error during logout:', error);
-            return { success: false, message: "Logout failed" };
+            return { success: false, message: "Logout failed due to system error" };
         }
     }
 
@@ -196,10 +301,35 @@ class UserManager {
 
     getUserById(userId) {
         try {
-            return this.users.find(user => user.id === userId);
+            return this.users.find(user => user.id === parseInt(userId));
         } catch (error) {
             console.error('Error getting user by ID:', error);
             return null;
+        }
+    }
+
+    updateUser(userId, updates) {
+        try {
+            const userIndex = this.users.findIndex(user => user.id === parseInt(userId));
+            if (userIndex === -1) {
+                return { success: false, message: "User not found" };
+            }
+
+            this.users[userIndex] = { ...this.users[userIndex], ...updates };
+            const saved = this.saveUsers();
+            
+            // Update current user if it's the same user
+            if (this.currentUser && this.currentUser.id === parseInt(userId)) {
+                this.saveCurrentUser(this.users[userIndex]);
+            }
+
+            return saved ? 
+                { success: true, user: this.users[userIndex] } : 
+                { success: false, message: "Failed to save user updates" };
+                
+        } catch (error) {
+            console.error('Error updating user:', error);
+            return { success: false, message: "Update failed due to system error" };
         }
     }
 }
@@ -217,7 +347,7 @@ class NewsManager {
                     id: 1,
                     userId: 1,
                     content: "Welcome to Moddi Tech Design! We're excited to launch our new community platform where designers, clients, and partners can collaborate and share ideas.",
-                    timestamp: new Date('2024-01-15').toISOString(),
+                    timestamp: new Date('2024-01-15T10:00:00').toISOString(),
                     likes: 12,
                     likedBy: []
                 },
@@ -225,7 +355,7 @@ class NewsManager {
                     id: 2,
                     userId: 2,
                     content: "Just completed an amazing UI redesign for a fintech startup. The new dashboard features real-time analytics and improved user workflows!",
-                    timestamp: new Date('2024-02-20').toISOString(),
+                    timestamp: new Date('2024-02-20T14:30:00').toISOString(),
                     likes: 8,
                     likedBy: []
                 }
@@ -242,15 +372,21 @@ class NewsManager {
     saveNews() {
         try {
             localStorage.setItem('moddiNews', JSON.stringify(this.news));
+            return true;
         } catch (error) {
             console.error('Error saving news:', error);
+            return false;
         }
     }
 
     createPost(userId, content) {
         try {
-            if (!userId || !content || content.trim() === '') {
+            if (!userId || !content?.trim()) {
                 return { success: false, message: "Content is required" };
+            }
+
+            if (content.trim().length < 5) {
+                return { success: false, message: "Content must be at least 5 characters" };
             }
 
             const post = {
@@ -263,11 +399,15 @@ class NewsManager {
             };
 
             this.news.unshift(post);
-            this.saveNews();
-            return { success: true, post };
+            const saved = this.saveNews();
+            
+            return saved ? 
+                { success: true, post } : 
+                { success: false, message: "Failed to save post" };
+                
         } catch (error) {
             console.error('Error creating post:', error);
-            return { success: false, message: "Failed to create post" };
+            return { success: false, message: "Failed to create post due to system error" };
         }
     }
 
@@ -281,16 +421,21 @@ class NewsManager {
             const post = this.news[postIndex];
             const currentUser = userManager.currentUser;
             
-            if (post.userId === userId || currentUser?.role === 'admin') {
-                this.news.splice(postIndex, 1);
-                this.saveNews();
-                return { success: true };
+            // Check permissions
+            if (post.userId !== parseInt(userId) && currentUser?.role !== 'admin') {
+                return { success: false, message: "Unauthorized to delete this post" };
             }
+
+            this.news.splice(postIndex, 1);
+            const saved = this.saveNews();
             
-            return { success: false, message: "Unauthorized to delete this post" };
+            return saved ? 
+                { success: true } : 
+                { success: false, message: "Failed to delete post" };
+                
         } catch (error) {
             console.error('Error deleting post:', error);
-            return { success: false, message: "Failed to delete post" };
+            return { success: false, message: "Failed to delete post due to system error" };
         }
     }
 
@@ -301,26 +446,29 @@ class NewsManager {
                 return { success: false, message: "Post not found" };
             }
 
-            const likeIndex = post.likedBy.indexOf(userId);
+            const likeIndex = post.likedBy.indexOf(parseInt(userId));
             if (likeIndex === -1) {
-                post.likedBy.push(userId);
+                post.likedBy.push(parseInt(userId));
                 post.likes++;
             } else {
                 post.likedBy.splice(likeIndex, 1);
                 post.likes--;
             }
             
-            this.saveNews();
-            return { success: true, likes: post.likes, isLiked: likeIndex === -1 };
+            const saved = this.saveNews();
+            return saved ? 
+                { success: true, likes: post.likes, isLiked: likeIndex === -1 } : 
+                { success: false, message: "Failed to update like" };
+                
         } catch (error) {
             console.error('Error liking post:', error);
-            return { success: false, message: "Failed to like post" };
+            return { success: false, message: "Failed to like post due to system error" };
         }
     }
 
     getUserNewsCount(userId) {
         try {
-            return this.news.filter(post => post.userId === userId).length;
+            return this.news.filter(post => post.userId === parseInt(userId)).length;
         } catch (error) {
             console.error('Error getting user news count:', error);
             return 0;
@@ -329,17 +477,23 @@ class NewsManager {
 
     getNewsFeed() {
         try {
-            return this.news.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            return [...this.news].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
         } catch (error) {
             console.error('Error getting news feed:', error);
             return [];
         }
     }
-}
 
-// Initialize managers
-let userManager;
-let newsManager;
+    getPostsByUser(userId) {
+        try {
+            return this.news.filter(post => post.userId === parseInt(userId))
+                           .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        } catch (error) {
+            console.error('Error getting user posts:', error);
+            return [];
+        }
+    }
+}
 
 // Utility Functions
 const utils = {
@@ -361,8 +515,24 @@ const utils = {
 
             const notification = document.createElement('div');
             notification.className = `notification ${type}`;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? '#10B981' : type === 'error' ? '#EF4444' : '#3B82F6'};
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 10000;
+                transform: translateX(400px);
+                opacity: 0;
+                transition: all 0.3s ease;
+                max-width: 400px;
+            `;
+
             notification.innerHTML = `
-                <div class="notification-content">
+                <div style="display: flex; align-items: center; gap: 8px;">
                     <i class="fas fa-${this.getNotificationIcon(type)}"></i>
                     <span>${message}</span>
                 </div>
@@ -371,11 +541,15 @@ const utils = {
             document.body.appendChild(notification);
 
             // Animate in
-            setTimeout(() => notification.classList.add('show'), 100);
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+                notification.style.opacity = '1';
+            }, 100);
 
             // Remove after 4 seconds
             setTimeout(() => {
-                notification.classList.remove('show');
+                notification.style.transform = 'translateX(400px)';
+                notification.style.opacity = '0';
                 setTimeout(() => {
                     if (notification.parentNode) {
                         notification.remove();
@@ -416,7 +590,7 @@ const utils = {
             if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
             if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
             if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)}d ago`;
-            return `${Math.floor(diffInSeconds / 2592000)}mo ago`;
+            return time.toLocaleDateString();
         } catch (error) {
             console.error('Error formatting time:', error);
             return 'recently';
@@ -433,6 +607,15 @@ const utils = {
             clearTimeout(timeout);
             timeout = setTimeout(later, wait);
         };
+    },
+
+    escapeHtml(unsafe) {
+        return unsafe
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
     }
 };
 
@@ -441,6 +624,9 @@ const App = {
     init() {
         try {
             console.log('Initializing Moddi Tech Design App...');
+            
+            // Initialize mobile menu
+            this.mobileMenu = new MobileMenu();
             
             // Initialize managers
             userManager = new UserManager();
@@ -453,9 +639,6 @@ const App = {
             this.updateUI();
             
             console.log('App initialized successfully');
-            console.log('Available admin login:');
-            console.log('Email: modditechdesigns@gmail.com');
-            console.log('Password: moddi2024');
             
         } catch (error) {
             console.error('Error initializing app:', error);
@@ -465,28 +648,9 @@ const App = {
 
     setupEventListeners() {
         try {
-            // Mobile menu
-            const hamburgerBtn = utils.getElement('hamburgerBtn');
-            const mobileMenu = utils.getElement('mobileMenu');
+            // Navbar scroll effect
+            window.addEventListener('scroll', this.handleScroll.bind(this));
             
-            if (hamburgerBtn && mobileMenu) {
-                hamburgerBtn.addEventListener('click', () => {
-                    hamburgerBtn.classList.toggle('active');
-                    mobileMenu.classList.toggle('active');
-                });
-            }
-
-            // Close mobile menu when clicking on links
-            const mobileLinks = document.querySelectorAll('.nav-links a');
-            mobileLinks.forEach(link => {
-                link.addEventListener('click', () => {
-                    if (hamburgerBtn && mobileMenu) {
-                        hamburgerBtn.classList.remove("active");
-                        mobileMenu.classList.remove("active");
-                    }
-                });
-            });
-
             // Login button
             const loginBtn = utils.getElement('loginBtn');
             if (loginBtn) {
@@ -513,24 +677,27 @@ const App = {
             // Close modals on outside click
             document.addEventListener('click', this.handleOutsideClick.bind(this));
             
-            // Navbar scroll effect
-            window.addEventListener('scroll', this.handleScroll.bind(this));
-            
             // Waitlist form
             const waitlistForm = utils.getElement('waitlist-form');
             if (waitlistForm) {
-                waitlistForm.addEventListener('submit', (e) => {
-                    e.preventDefault();
-                    const email = utils.getElement('email').value;
-                    if (email) {
-                        utils.showNotification('Thank you for joining our waitlist!', 'success');
-                        waitlistForm.reset();
-                    }
-                });
+                waitlistForm.addEventListener('submit', this.handleWaitlistSubmit.bind(this));
             }
             
         } catch (error) {
             console.error('Error setting up event listeners:', error);
+        }
+    },
+
+    handleWaitlistSubmit(e) {
+        e.preventDefault();
+        try {
+            const emailInput = utils.getElement('email');
+            if (emailInput && emailInput.value) {
+                utils.showNotification('Thank you for joining our waitlist! We\\'ll be in touch soon.', 'success');
+                e.target.reset();
+            }
+        } catch (error) {
+            console.error('Error handling waitlist submission:', error);
         }
     },
 
@@ -597,7 +764,7 @@ const App = {
             // Update forms
             const authForms = document.querySelectorAll('.auth-form');
             authForms.forEach(form => form.classList.remove('active'));
-            const activeForm = utils.getElement(`${tab}Form`);
+            const activeForm = utils.getElement(`${tab}-form`);
             if (activeForm) activeForm.classList.add('active');
         } catch (error) {
             console.error('Error switching auth tab:', error);
@@ -608,11 +775,9 @@ const App = {
         e.preventDefault();
         
         try {
-            const emailInput = e.target.querySelector('input[type="email"]');
-            const passwordInput = e.target.querySelector('input[type="password"]');
-            
-            const email = emailInput?.value;
-            const password = passwordInput?.value;
+            const formData = new FormData(e.target);
+            const email = formData.get('email')?.toString() || '';
+            const password = formData.get('password')?.toString() || '';
 
             if (!email || !password) {
                 utils.showNotification('Please fill in all fields', 'error');
@@ -630,7 +795,7 @@ const App = {
             }
         } catch (error) {
             console.error('Error during login:', error);
-            utils.showNotification('Login failed', 'error');
+            utils.showNotification('Login failed due to system error', 'error');
         }
     },
 
@@ -638,33 +803,31 @@ const App = {
         e.preventDefault();
         
         try {
-            const firstNameInput = e.target.querySelector('input[placeholder="First Name"]');
-            const lastNameInput = e.target.querySelector('input[placeholder="Last Name"]');
-            const emailInput = e.target.querySelector('input[type="email"]');
-            const passwordInput = e.target.querySelector('input[type="password"]');
-            const userRoleSelect = utils.getElement('userRole');
-            
+            const formData = new FormData(e.target);
             const userData = {
-                firstName: firstNameInput?.value,
-                lastName: lastNameInput?.value,
-                email: emailInput?.value,
-                password: passwordInput?.value,
-                role: userRoleSelect ? userRoleSelect.value : 'client'
+                firstName: formData.get('firstName')?.toString() || '',
+                lastName: formData.get('lastName')?.toString() || '',
+                email: formData.get('email')?.toString() || '',
+                password: formData.get('password')?.toString() || '',
+                role: formData.get('role')?.toString() || 'client'
             };
 
             const result = userManager.register(userData);
             if (result.success) {
                 utils.showNotification('Account created successfully!', 'success');
-                userManager.login(userData.email, userData.password);
-                this.closeLoginModal();
-                this.updateUI();
-                this.loadDashboardData();
+                // Auto-login after registration
+                const loginResult = userManager.login(userData.email, userData.password);
+                if (loginResult.success) {
+                    this.closeLoginModal();
+                    this.updateUI();
+                    this.loadDashboardData();
+                }
             } else {
                 utils.showNotification(result.message, 'error');
             }
         } catch (error) {
             console.error('Error during signup:', error);
-            utils.showNotification('Registration failed', 'error');
+            utils.showNotification('Registration failed due to system error', 'error');
         }
     },
 
@@ -703,6 +866,12 @@ const App = {
             const userSearch = utils.getElement('userSearch');
             if (userSearch) {
                 userSearch.addEventListener('input', utils.debounce(this.handleUserSearch.bind(this), 300));
+            }
+
+            // Logout button
+            const logoutBtn = utils.getElement('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', this.logout.bind(this));
             }
         } catch (error) {
             console.error('Error setting up dashboard:', error);
@@ -758,8 +927,16 @@ const App = {
                     if (targetTab) targetTab.classList.add('active');
 
                     // Load tab-specific data
-                    if (tabId === 'community') {
-                        this.loadCommunityUsers();
+                    switch(tabId) {
+                        case 'news':
+                            this.loadNewsFeed();
+                            break;
+                        case 'community':
+                            this.loadCommunityUsers();
+                            break;
+                        case 'profile':
+                            this.loadProfileData();
+                            break;
                     }
                 });
             });
@@ -826,27 +1003,50 @@ const App = {
             if (!user) return;
 
             // Update dashboard header
-            const userAvatar = utils.getElement('userAvatar');
-            const userName = utils.getElement('userName');
-            const userRoleBadge = utils.getElement('userRoleBadge');
-
-            if (userAvatar) userAvatar.textContent = user.avatar;
-            if (userName) userName.textContent = `${user.firstName} ${user.lastName}`;
-            if (userRoleBadge) {
-                userRoleBadge.textContent = user.role;
-                userRoleBadge.style.background = utils.getRoleColor(user.role);
-            }
-
+            this.updateDashboardHeader(user);
+            
             // Update stats
-            const newsCount = utils.getElement('newsCount');
-            if (newsCount) newsCount.textContent = newsManager.getUserNewsCount(user.id);
+            this.updateUserStats(user);
+            
+            // Load initial tab content
+            this.loadNewsFeed();
+            
+        } catch (error) {
+            console.error('Error loading dashboard data:', error);
+        }
+    },
 
-            // Update profile
+    updateDashboardHeader(user) {
+        const userAvatar = utils.getElement('userAvatar');
+        const userName = utils.getElement('userName');
+        const userRoleBadge = utils.getElement('userRoleBadge');
+
+        if (userAvatar) userAvatar.textContent = user.avatar;
+        if (userName) userName.textContent = `${user.firstName} ${user.lastName}`;
+        if (userRoleBadge) {
+            userRoleBadge.textContent = user.role;
+            userRoleBadge.style.background = utils.getRoleColor(user.role);
+        }
+    },
+
+    updateUserStats(user) {
+        const newsCount = utils.getElement('newsCount');
+        if (newsCount) {
+            newsCount.textContent = newsManager.getUserNewsCount(user.id);
+        }
+    },
+
+    loadProfileData() {
+        try {
+            const user = userManager.currentUser;
+            if (!user) return;
+
             const profileAvatar = utils.getElement('profileAvatar');
             const profileName = utils.getElement('profileName');
             const profileEmail = utils.getElement('profileEmail');
             const profileRole = utils.getElement('profileRole');
             const joinDate = utils.getElement('joinDate');
+            const userBio = utils.getElement('userBio');
 
             if (profileAvatar) profileAvatar.textContent = user.avatar;
             if (profileName) profileName.textContent = `${user.firstName} ${user.lastName}`;
@@ -856,17 +1056,10 @@ const App = {
                 profileRole.style.background = utils.getRoleColor(user.role);
             }
             if (joinDate) joinDate.textContent = user.joinDate;
+            if (userBio) userBio.textContent = user.bio || 'No bio yet';
 
-            // Load news feed
-            this.loadNewsFeed();
-
-            // Show/hide create post button based on role
-            const createNewsBtn = utils.getElement('createNewsBtn');
-            if (createNewsBtn) {
-                createNewsBtn.style.display = user.role === 'client' ? 'none' : 'flex';
-            }
         } catch (error) {
-            console.error('Error loading dashboard data:', error);
+            console.error('Error loading profile data:', error);
         }
     },
 
@@ -894,25 +1087,26 @@ const App = {
 
                 const isAuthor = userManager.currentUser?.id === post.userId;
                 const isLiked = post.likedBy.includes(userManager.currentUser?.id);
+                const canDelete = isAuthor || userManager.currentUser?.role === 'admin';
 
                 return `
-                    <div class="news-item">
+                    <div class="news-item" data-post-id="${post.id}">
                         <div class="news-header">
                             <div class="news-author">
                                 <div class="author-avatar">${author.avatar}</div>
                                 <div class="author-info">
-                                    <h4>${author.firstName} ${author.lastName}</h4>
+                                    <h4>${utils.escapeHtml(author.firstName + ' ' + author.lastName)}</h4>
                                     <div class="author-role">${author.role}</div>
                                 </div>
                             </div>
                             <div class="news-time">${utils.formatTimeAgo(post.timestamp)}</div>
                         </div>
-                        <div class="news-content">${post.content}</div>
+                        <div class="news-content">${utils.escapeHtml(post.content)}</div>
                         <div class="news-actions">
                             <button class="action-btn ${isLiked ? 'liked' : ''}" onclick="App.toggleLike(${post.id})">
                                 <i class="fas fa-heart"></i> ${post.likes}
                             </button>
-                            ${isAuthor || userManager.currentUser?.role === 'admin' ? `
+                            ${canDelete ? `
                                 <button class="action-btn delete" onclick="App.deletePost(${post.id})">
                                     <i class="fas fa-trash"></i> Delete
                                 </button>
@@ -941,7 +1135,8 @@ const App = {
                 users = users.filter(user => 
                     user.firstName.toLowerCase().includes(searchTerm) ||
                     user.lastName.toLowerCase().includes(searchTerm) ||
-                    user.role.toLowerCase().includes(searchTerm)
+                    user.role.toLowerCase().includes(searchTerm) ||
+                    user.bio.toLowerCase().includes(searchTerm)
                 );
             }
 
@@ -959,9 +1154,11 @@ const App = {
             usersList.innerHTML = users.map(user => `
                 <div class="user-card">
                     <div class="user-avatar-card">${user.avatar}</div>
-                    <h4>${user.firstName} ${user.lastName}</h4>
-                    <p>${user.bio}</p>
-                    <div class="user-role-tag" style="background: ${utils.getRoleColor(user.role)}">${user.role}</div>
+                    <h4>${utils.escapeHtml(user.firstName + ' ' + user.lastName)}</h4>
+                    <p>${utils.escapeHtml(user.bio || 'No bio yet')}</p>
+                    <div class="user-role-tag" style="background: ${utils.getRoleColor(user.role)}">
+                        ${user.role}
+                    </div>
                 </div>
             `).join('');
         } catch (error) {
@@ -975,6 +1172,7 @@ const App = {
             const loginModal = utils.getElement('loginModal');
             if (loginModal) {
                 loginModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
             }
         } catch (error) {
             console.error('Error opening login modal:', error);
@@ -986,6 +1184,16 @@ const App = {
             const loginModal = utils.getElement('loginModal');
             if (loginModal) {
                 loginModal.classList.remove('active');
+                document.body.style.overflow = '';
+                
+                // Reset forms
+                const loginForm = utils.getElement('login-form');
+                const signupForm = utils.getElement('signup-form');
+                if (loginForm) loginForm.reset();
+                if (signupForm) signupForm.reset();
+                
+                // Switch back to login tab
+                this.switchAuthTab('login');
             }
         } catch (error) {
             console.error('Error closing login modal:', error);
@@ -997,6 +1205,7 @@ const App = {
             const dashboardModal = utils.getElement('dashboardModal');
             if (dashboardModal) {
                 dashboardModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
                 this.loadDashboardData();
             }
         } catch (error) {
@@ -1009,6 +1218,7 @@ const App = {
             const dashboardModal = utils.getElement('dashboardModal');
             if (dashboardModal) {
                 dashboardModal.classList.remove('active');
+                document.body.style.overflow = '';
             }
         } catch (error) {
             console.error('Error closing dashboard:', error);
@@ -1044,7 +1254,7 @@ const App = {
                 if (result.success) {
                     utils.showNotification('Post deleted successfully', 'success');
                     this.loadNewsFeed();
-                    this.loadDashboardData();
+                    this.loadDashboardData(); // Refresh stats
                 } else {
                     utils.showNotification(result.message, 'error');
                 }
@@ -1062,6 +1272,7 @@ const App = {
                 utils.showNotification('Logged out successfully', 'success');
                 this.closeDashboardModal();
                 this.updateUI();
+                this.mobileMenu.closeMenu();
             } else {
                 utils.showNotification(result.message, 'error');
             }
@@ -1072,6 +1283,10 @@ const App = {
     }
 };
 
+// Initialize managers
+let userManager;
+let newsManager;
+
 // Initialize the application when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     App.init();
@@ -1079,223 +1294,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Make App methods globally available for onclick handlers
 window.App = App;
-// Enhanced Mobile Menu Functionality
-class MobileMenu {
-    constructor() {
-        this.hamburgerBtn = document.getElementById("hamburgerBtn");
-        this.mobileMenu = document.getElementById("mobileMenu");
-        this.navbar = document.querySelector(".navbar");
-        this.init();
-    }
 
-    init() {
-        if (this.hamburgerBtn && this.mobileMenu) {
-            this.setupEventListeners();
-        }
-    }
-
-    setupEventListeners() {
-        // Hamburger button click
-        this.hamburgerBtn.addEventListener("click", () => {
-            this.toggleMenu();
-        });
-
-        // Close menu when clicking on links
-        const navLinks = this.mobileMenu.querySelectorAll('a');
-        navLinks.forEach(link => {
-            link.addEventListener('click', () => {
-                this.closeMenu();
-            });
-        });
-
-        // Close menu when clicking on login button
-        const loginBtn = this.mobileMenu.querySelector('.login-btn');
-        if (loginBtn) {
-            loginBtn.addEventListener('click', () => {
-                this.closeMenu();
-            });
-        }
-
-        // Close menu on escape key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                this.closeMenu();
-            }
-        });
-
-        // Close menu on resize (if menu is open and screen becomes larger)
-        window.addEventListener('resize', () => {
-            if (window.innerWidth > 768 && this.mobileMenu.classList.contains('active')) {
-                this.closeMenu();
-            }
-        });
-    }
-
-    toggleMenu() {
-        this.hamburgerBtn.classList.toggle("active");
-        this.mobileMenu.classList.toggle("active");
-        document.body.classList.toggle("menu-open");
-        
-        // Add backdrop when menu is open
-        if (this.mobileMenu.classList.contains('active')) {
-            this.createBackdrop();
-        } else {
-            this.removeBackdrop();
-        }
-    }
-
-    openMenu() {
-        this.hamburgerBtn.classList.add("active");
-        this.mobileMenu.classList.add("active");
-        document.body.classList.add("menu-open");
-        this.createBackdrop();
-    }
-
-    closeMenu() {
-        this.hamburgerBtn.classList.remove("active");
-        this.mobileMenu.classList.remove("active");
-        document.body.classList.remove("menu-open");
-        this.removeBackdrop();
-    }
-
-    createBackdrop() {
-        // Remove existing backdrop if any
-        this.removeBackdrop();
-        
-        const backdrop = document.createElement('div');
-        backdrop.className = 'mobile-menu-backdrop';
-        backdrop.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 998;
-            backdrop-filter: blur(2px);
-        `;
-        
-        backdrop.addEventListener('click', () => {
-            this.closeMenu();
-        });
-        
-        document.body.appendChild(backdrop);
-    }
-
-    removeBackdrop() {
-        const backdrop = document.querySelector('.mobile-menu-backdrop');
-        if (backdrop) {
-            backdrop.remove();
-        }
-    }
+// Export for testing
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { App, UserManager, NewsManager, MobileMenu };
 }
-
-// Initialize Mobile Menu
-let mobileMenu;
-
-// Update the Main Application Controller
-const App = {
-    init() {
-        try {
-            console.log('Initializing Moddi Tech Design App...');
-            
-            // Initialize mobile menu first
-            mobileMenu = new MobileMenu();
-            
-            // Initialize managers
-            userManager = new UserManager();
-            newsManager = new NewsManager();
-            
-            // Setup event listeners
-            this.setupEventListeners();
-            
-            // Update UI based on current state
-            this.updateUI();
-            
-            console.log('App initialized successfully');
-            console.log('Available admin login:');
-            console.log('Email: modditechdesigns@gmail.com');
-            console.log('Password: moddi2024');
-            
-        } catch (error) {
-            console.error('Error initializing app:', error);
-            utils.showNotification('Failed to initialize application', 'error');
-        }
-    },
-
-    setupEventListeners() {
-        try {
-            // Navbar scroll effect
-            window.addEventListener('scroll', this.handleScroll.bind(this));
-            
-            // Login button
-            const loginBtn = utils.getElement('loginBtn');
-            if (loginBtn) {
-                loginBtn.addEventListener('click', this.handleLoginClick.bind(this));
-            }
-
-            // Modal close buttons
-            const closeLogin = utils.getElement('closeLogin');
-            const closeDashboard = utils.getElement('closeDashboard');
-            
-            if (closeLogin) {
-                closeLogin.addEventListener('click', this.closeLoginModal.bind(this));
-            }
-            if (closeDashboard) {
-                closeDashboard.addEventListener('click', this.closeDashboardModal.bind(this));
-            }
-
-            // Auth forms
-            this.setupAuthForms();
-            
-            // Dashboard functionality
-            this.setupDashboard();
-            
-            // Close modals on outside click
-            document.addEventListener('click', this.handleOutsideClick.bind(this));
-            
-            // Waitlist form
-            const waitlistForm = utils.getElement('waitlist-form');
-            if (waitlistForm) {
-                waitlistForm.addEventListener('submit', (e) => {
-                    e.preventDefault();
-                    const email = utils.getElement('email').value;
-                    if (email) {
-                        utils.showNotification('Thank you for joining our waitlist!', 'success');
-                        waitlistForm.reset();
-                    }
-                });
-            }
-            
-        } catch (error) {
-            console.error('Error setting up event listeners:', error);
-        }
-    },
-
-    // ... rest of your App methods remain the same ...
-}
-
-// Test function to check mobile menu
-function testMobileMenu() {
-    console.log('Testing mobile menu...');
-    console.log('Hamburger button:', document.getElementById('hamburgerBtn'));
-    console.log('Mobile menu:', document.getElementById('mobileMenu'));
-    console.log('Window width:', window.innerWidth);
-    
-    // Force show mobile menu for testing
-    if (window.innerWidth <= 768) {
-        const hamburger = document.getElementById('hamburgerBtn');
-        const menu = document.getElementById('mobileMenu');
-        if (hamburger && menu) {
-            console.log('Mobile elements found - adding test styles');
-            hamburger.style.display = 'flex';
-            menu.style.display = 'flex';
-        }
-    }
-}
-
-// Call test on load
-document.addEventListener('DOMContentLoaded', function() {
-    App.init();
-    testMobileMenu();
-});
