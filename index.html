@@ -3,102 +3,325 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Moddi Tech Design — Creative technology studio crafting futuristic digital experiences.">
-  <link rel="icon" href="favicon.ico">
-  <title>Moddi Tech Design — Innovate the Future</title>
+  <title>Moddi Tech Design | Digital Innovation</title>
   <link rel="stylesheet" href="style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
-  <!-- ====== Navbar ====== -->
+  <!-- NAVBAR -->
   <header class="navbar">
-    <div class="logo">Moddi<span>Tech</span><span>Design</span></div>
-    <nav class="nav-links">
+    <div class="logo">Moddi<span>Tech</span><span class="dot"></span></div>
+
+    <!-- Accessible hamburger button -->
+    <button class="hamburger" id="hamburgerBtn" aria-label="Open navigation menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+
+    <nav class="nav-links" id="mobileMenu">
       <a href="#home">Home</a>
       <a href="#about">About</a>
+      <a href="#portfolio">Portfolio</a>
       <a href="#contact">Contact</a>
+      <button id="loginBtn" class="login-btn">Login</button>
     </nav>
   </header>
 
-  <!-- ====== Hero Section ====== -->
-  <section id="home" class="hero">
-    <div class="hero-content">
-      <h1 class="fade-in">Designing the Future of Tech</h1>
-      <p class="fade-in-delay">Join the waitlist and be part of something extraordinary.</p>
-      <form id="waitlist-form" action="https://formspree.io/f/xwpaepan" method="POST">
-  <input type="email" name="email" id="email" placeholder="Enter your email" required />
-  <button type="submit">Join Waitlist</button>
-</form>
-<p id="message"></p>
-
-      <a href="realv.html" class="cta-btn">Explore Our Vision</a>
-
-
-      <p id="message"></p>
-    </div>
-  </section>
-
-  <!-- ====== About Section ====== -->
-  <section id="about" class="about">
+  <!-- HERO -->
+  <section class="hero" id="home">
     <div class="container">
-      <h2>About Moddi Tech</h2>
-      <p>
-        Moddi Tech Design is a creative technology company focused on innovation, UI/UX mastery,
-        and futuristic product design. We blend design and technology to build human-centered digital experiences.
-      </p>
+      <div class="hero-content fade-in">
+        <h1>Designs That Transform Your Digital Presence</h1>
+        <p>
+          Modern UI/UX. Websites. Branding. Social Content. Digital Identity. We create digital experiences that captivate and convert.
+        </p>
+
+        <!-- Join Waitlist -->
+        <form id="waitlist-form">
+          <div class="waitlist-form">
+            <input type="email" id="email" placeholder="Enter your email" required />
+            <button type="submit">Join Waitlist</button>
+          </div>
+          <div id="message"></div>
+        </form>
+      </div>
     </div>
   </section>
 
-  <!-- ====== Contact Section ====== -->
-  <section id="contact" class="contact">
+  <!-- ABOUT -->
+  <section class="about fade-in-delay" id="about">
     <div class="container">
-      <h2>Contact Us</h2>
-      <p>Have a project or idea? We’d love to hear from you.</p>
-      <a href="mailto:moddidesignsco@gmail.com" class="contact-email">moddidesignsco@gmail.com</a>
+      <div class="about-content">
+        <h2>About Us</h2>
+        <p>
+          We craft intuitive, visually appealing digital designs that elevate your brand and engage your audience. Our team combines creative vision with technical expertise to deliver solutions that drive results.
+        </p>
+        <a href="realv.html" class="cta-btn">Our Vision</a>
+      </div>
     </div>
   </section>
 
-  <!-- ====== Floating Contact Widget ====== -->
-  <div class="contact-widget">
-    <button id="contactToggle" class="contact-main-btn" title="Contact Us">💬</button>
-    <div class="contact-options" id="contactOptions">
-      <a href="https://wa.me/message/SKPOYZE62GJFC1"
-         target="_blank"
-         rel="noopener noreferrer"
-         class="contact-option whatsapp">
-         🟢 WhatsApp
+  <!-- PORTFOLIO -->
+  <section class="portfolio" id="portfolio">
+    <div class="container">
+      <h2>Our Work</h2>
+      <div class="portfolio-grid">
+        <div class="portfolio-item">
+          <img src="https://images.unsplash.com/photo-1558655146-9f40138edfeb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80" alt="E-commerce Website Design" />
+          <div class="portfolio-overlay">
+            <h3>E-commerce Platform</h3>
+            <p>UI/UX Design & Development</p>
+          </div>
+        </div>
+        <div class="portfolio-item">
+          <img src="https://images.unsplash.com/photo-1561070791-2526d30994b5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80" alt="Mobile App Design" />
+          <div class="portfolio-overlay">
+            <h3>Fitness Mobile App</h3>
+            <p>UI/UX Design & Branding</p>
+          </div>
+        </div>
+        <div class="portfolio-item">
+          <img src="https://images.unsplash.com/photo-1467232004584-a241de8bcf5d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80" alt="Brand Identity Design" />
+          <div class="portfolio-overlay">
+            <h3>Tech Startup Branding</h3>
+            <p>Visual Identity & Strategy</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="contact" id="contact">
+    <div class="container">
+      <h2>Get In Touch</h2>
+      <p>Have a project in mind? Let's discuss how we can bring your vision to life.</p>
+      <a class="contact-email" href="mailto:modditechdesign@gmail.com">
+        <i class="fas fa-envelope"></i> modditechdesign@gmail.com
       </a>
-      <a href="mailto:moddidesignsco@gmail.com"
-         class="contact-option email">
-         ✉️ Email
-      </a>
+    </div>
+  </section>
+
+  <!-- LOGIN MODAL -->
+  <div id="loginModal" class="modal">
+    <div class="modal-content">
+      <button class="close-modal" id="closeLogin">✕</button>
+      <h2>Welcome Back</h2>
+      <p>Please log in to continue</p>
+
+      <form id="login-form">
+        <input type="email" placeholder="Email" required />
+        <input type="password" placeholder="Password" required />
+        <button type="submit" class="cta-btn">Login</button>
+      </form>
+
+      <p class="modal-note">Forgot your password? <a href="#">Reset</a></p>
     </div>
   </div>
-  <section id="services" class="services">
-  <div class="container">
-    <h2>What We Do</h2>
-    <div class="service-grid">
-      <div class="service-card">
-        <h3>UI/UX Design</h3>
-        <p>Crafting intuitive interfaces and seamless user experiences.</p>
+
+  <!-- SIGNUP MODAL -->
+  <div id="signupModal" class="modal">
+    <div class="modal-content">
+      <button class="close-modal" id="closeSignup">✕</button>
+      <h2>Join Moddi Tech Design</h2>
+      <p>Create your account to get started</p>
+
+      <form id="signup-form">
+        <div class="form-row">
+          <input type="text" id="firstName" placeholder="First Name" required />
+          <input type="text" id="lastName" placeholder="Last Name" required />
+        </div>
+        <input type="email" id="signupEmail" placeholder="Email Address" required />
+        <input type="password" id="signupPassword" placeholder="Password" required />
+        <input type="password" id="confirmPassword" placeholder="Confirm Password" required />
+        
+        <div class="form-group">
+          <label for="userType" class="sr-only">Account Type</label>
+          <select id="userType" required aria-label="Select your account type">
+            <option value="">Select Account Type</option>
+            <option value="client">Client</option>
+            <option value="designer">Designer</option>
+            <option value="partner">Partner</option>
+          </select>
+        </div>
+        
+        <div class="form-checkbox">
+          <input type="checkbox" id="terms" required />
+          <label for="terms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></label>
+        </div>
+        
+        <button type="submit" class="cta-btn">Create Account</button>
+      </form>
+
+      <p class="modal-note">Already have an account? <a href="#" id="switchToLogin">Login</a></p>
+    </div>
+  </div>
+
+  <!-- DASHBOARD MODAL -->
+  <div id="dashboardModal" class="modal">
+    <div class="modal-content dashboard-content">
+      <button class="close-modal" id="closeDashboard">✕</button>
+      
+      <div class="dashboard-header">
+        <h2>Moddi Tech Design Dashboard</h2>
+        <div class="user-welcome" id="userWelcome">
+          <span id="userGreeting">Welcome back!</span>
+          <span class="user-role-badge" id="userRoleBadge">Admin</span>
+        </div>
       </div>
-      <div class="service-card">
-        <h3>Product Innovation</h3>
-        <p>Turning bold ideas into high-impact digital solutions.</p>
+
+      <div class="dashboard-tabs">
+        <button class="tab-btn active" data-tab="news">News & Updates</button>
+        <button class="tab-btn" data-tab="reviews">Reviews</button>
+        <button class="tab-btn" data-tab="comments">Comments</button>
+        <button class="tab-btn" data-tab="profile">My Profile</button>
       </div>
-      <div class="service-card">
-        <h3>Tech Branding</h3>
-        <p>Designing digital identities that stand out and inspire trust.</p>
+
+      <div class="tab-content active" id="newsTab">
+        <div class="tab-header">
+          <h3>Official News & Updates</h3>
+          <button class="btn-primary" id="refreshNews">
+            <i class="fas fa-sync-alt"></i> Refresh
+          </button>
+        </div>
+        
+        <div class="news-feed" id="newsFeed">
+          <!-- News items will be loaded here -->
+        </div>
+        
+        <div class="post-update" id="adminPostSection" style="display: none;">
+          <h4>Post New Update</h4>
+          <form id="newsForm">
+            <input type="text" id="newsTitle" placeholder="Update Title" required>
+            <textarea id="newsContent" placeholder="What's new at Moddi Tech Design?" rows="4" required></textarea>
+            <div class="form-actions">
+              <button type="submit" class="btn-primary">Post Update</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="tab-content" id="reviewsTab">
+        <div class="tab-header">
+          <h3>Client Reviews</h3>
+          <button class="btn-primary" id="addReviewBtn">
+            <i class="fas fa-plus"></i> Add Review
+          </button>
+        </div>
+        
+        <div class="reviews-container">
+          <div class="reviews-list" id="reviewsList">
+            <!-- Reviews will be loaded here -->
+          </div>
+          
+          <div class="add-review-form" id="addReviewForm" style="display: none;">
+            <h4>Write a Review</h4>
+            <form id="reviewForm">
+              <div class="rating-input">
+                <label>Rating:</label>
+                <div class="stars" id="ratingStars">
+                  <span class="star" data-rating="1">★</span>
+                  <span class="star" data-rating="2">★</span>
+                  <span class="star" data-rating="3">★</span>
+                  <span class="star" data-rating="4">★</span>
+                  <span class="star" data-rating="5">★</span>
+                </div>
+                <span class="rating-value" id="ratingValue">0</span>/5
+              </div>
+              <textarea id="reviewText" placeholder="Share your experience with Moddi Tech Design..." rows="4" required></textarea>
+              <div class="form-actions">
+                <button type="submit" class="btn-primary">Submit Review</button>
+                <button type="button" class="btn-secondary" id="cancelReview">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="commentsTab">
+        <div class="tab-header">
+          <h3>Community Comments</h3>
+          <button class="btn-primary" id="addCommentBtn">
+            <i class="fas fa-comment"></i> Add Comment
+          </button>
+        </div>
+        
+        <div class="comments-container">
+          <div class="comments-list" id="commentsList">
+            <!-- Comments will be loaded here -->
+          </div>
+          
+          <div class="add-comment-form" id="addCommentForm" style="display: none;">
+            <h4>Add a Comment</h4>
+            <form id="commentForm">
+              <input type="text" id="commentTitle" placeholder="Comment Title (optional)">
+              <textarea id="commentText" placeholder="Share your thoughts..." rows="3" required></textarea>
+              <div class="form-actions">
+                <button type="submit" class="btn-primary">Post Comment</button>
+                <button type="button" class="btn-secondary" id="cancelComment">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="profileTab">
+        <div class="profile-section">
+          <h3>My Profile</h3>
+          <div class="profile-info">
+            <div class="profile-avatar" id="profileAvatar">👑</div>
+            <div class="profile-details">
+              <h4 id="profileName">Moddi Admin</h4>
+              <p id="profileEmail">modditechdesigns@gmail.com</p>
+              <p class="profile-role" id="profileRole">Administrator</p>
+              <p class="profile-join-date">Member since: <span id="joinDate">2024-01-01</span></p>
+            </div>
+          </div>
+          
+          <div class="profile-stats">
+            <div class="stat-card">
+              <span class="stat-number" id="reviewsCount">0</span>
+              <span class="stat-label">Reviews</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-number" id="commentsCount">0</span>
+              <span class="stat-label">Comments</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-number" id="newsCount">0</span>
+              <span class="stat-label">News Posts</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-</section>
 
-  <!-- Box Icon -->
-   <link href='https://cdn.boxicons.com/3.0.3/fonts/basic/boxicons.min.css' rel='stylesheet'>
-  <!-- ====== Footer ====== -->
-<footer>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <!-- FOOTER -->
+  <footer>
+    <div class="container">
+      <div class="socials">
+        <a href="https://twitter.com/modditech" class="social-icon" aria-label="Twitter">
+          <i class="fab fa-x-twitter"></i>
+        </a>
+        <a href="https://linkedin.com/company/modditech" class="social-icon" aria-label="LinkedIn">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+        <a href="https://instagram.com/modditech" class="social-icon" aria-label="Instagram">
+          <i class="fab fa-instagram"></i>
+        </a>
+        <a href="https://dribbble.com/modditech" class="social-icon" aria-label="Dribbble">
+          <i class="fab fa-dribbble"></i>
+        </a>
+      </div>
+      <p class="copyright">© 2025 Moddi Tech Design. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 ...
 <div class="socials">
   <a href="https://twitter.com/modditech" class="social-icon"><i class="fab fa-x-twitter"></i></a>
@@ -114,5 +337,6 @@
   <script src="script.js"></script>
 </body>
 </html>
+
 
 
